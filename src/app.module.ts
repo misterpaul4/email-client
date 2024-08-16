@@ -26,11 +26,11 @@ import { MailerModule } from "./core-modules";
 
         return {
           type: 'postgres',
-          host: configService.get<string>('DATABASE_HOST'),
-          port: parseInt(configService.get<string>('DATABASE_PORT'), 10),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DATABASE_PASSWORD') || null,
-          database: configService.get<string>('DB_DATABASE'),
+          host: configService.get('DATABASE_HOST'),
+          port: parseInt(configService.get('DATABASE_PORT'), 10),
+          username: configService.get('DB_USERNAME'),
+          password: configService.get('DATABASE_PASSWORD') || null,
+          database: configService.get('DB_DATABASE'),
           synchronize: true,
           autoLoadEntities: true,
         }
