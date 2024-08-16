@@ -9,35 +9,25 @@ import { MailerModule } from "./core-modules";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Make the configuration available globally
-      load: [
-        () => ({
-          DATABASE_HOST: process.env.JWT_SECRET,
-          DATABASE_PORT: process.env.JWT_EXPIRY,
-          DB_USERNAME: process.env.DB_USERNAME,
-          DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
-          DB_DATABASE: process.env.DB_DATABASE,
-        }),
-      ],
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-
+      useFactory: (configService: ConfigService) => {
         return {
-          type: 'postgres',
-          host: configService.get('DATABASE_HOST'),
-          port: parseInt(configService.get('DATABASE_PORT'), 10),
-          username: configService.get('DB_USERNAME'),
-          password: configService.get('DATABASE_PASSWORD') || null,
-          database: configService.get('DB_DATABASE'),
+          type: "postgres",
+          host: configService.get("DATABASE_HOST"),
+          port: parseInt(configService.get("DATABASE_PORT"), 10),
+          username: configService.get("DB_USERNAME"),
+          password: configService.get("DATABASE_PASSWORD") || null,
+          database: configService.get("DB_DATABASE"),
           synchronize: true,
           autoLoadEntities: true,
-        }
+        };
       },
       inject: [ConfigService],
     }),
-    MailerModule
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
