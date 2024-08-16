@@ -1,8 +1,9 @@
 import { Module } from "@nestjs/common";
+import { MailerService } from "./mailer.service";
 
 @Module({
   imports: [],
-  providers: [],
-  exports: [],
+  providers: [MailerService],
+  exports: [MailerService],
 })
-export class ApplicationModule {}
+export class MailerModule {}

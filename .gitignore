@@ -2,3 +2,4 @@
 .env
 /ts
 dist/
+.DS_Store
