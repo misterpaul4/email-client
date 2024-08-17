@@ -3,7 +3,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { MailerModule } from "./core-modules";
+import { AuthModule, MailerModule } from "./core-modules";
 import { UserModule } from "./nest-modules";
 
 @Module({
@@ -31,6 +31,7 @@ import { UserModule } from "./nest-modules";
     }),
     MailerModule,
     UserModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

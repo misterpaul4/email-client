@@ -7,4 +7,13 @@ import { Repository } from "typeorm";
 export class UserService {
   constructor(@InjectRepository(User) public repo: Repository<User>) {
   }
+
+  getMany() {
+    return this.repo.find()
+  }
+
+  createOne(dto: User) {
+    const instance = this.repo.create(dto)
+    return this.repo.save(instance)
+  }
 }
