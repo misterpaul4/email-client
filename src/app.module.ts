@@ -3,12 +3,13 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { MailerModule } from "./core-modules";
+import { UserModule } from "nest-modules";
+import { MailerModule } from "core-modules";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Make the configuration available globally
+      isGlobal: true,
       envFilePath: ".env",
     }),
     TypeOrmModule.forRootAsync({
@@ -28,6 +29,7 @@ import { MailerModule } from "./core-modules";
       inject: [ConfigService],
     }),
     MailerModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
