@@ -3,8 +3,8 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { UserModule } from "nest-modules";
-import { MailerModule } from "core-modules";
+import { MailerModule } from "./core-modules";
+import { UserModule } from "./nest-modules";
 
 @Module({
   imports: [
@@ -18,10 +18,11 @@ import { MailerModule } from "core-modules";
         return {
           type: "postgres",
           host: configService.get("DATABASE_HOST"),
-          port: parseInt(configService.get("DATABASE_PORT"), 10),
+          port: parseInt(configService.get("DATABASE_PORT"), 2),
           username: configService.get("DB_USERNAME"),
-          password: configService.get("DATABASE_PASSWORD") || null,
+          password: configService.get("DATABASE_PASSWORD"),
           database: configService.get("DB_DATABASE"),
+          schema: configService.get("DB_SCHEMA"),
           synchronize: true,
           autoLoadEntities: true,
         };
