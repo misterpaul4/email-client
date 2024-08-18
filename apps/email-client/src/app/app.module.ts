@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {MailerModule, UserModule} from '@nest-modules'
 
 @Module({
   imports: [
@@ -28,6 +28,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       },
       inject: [ConfigService],
     }),
+    UserModule,
+    MailerModule
   ],
   controllers: [AppController],
   providers: [AppService],
