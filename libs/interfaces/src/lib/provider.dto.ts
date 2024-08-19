@@ -22,17 +22,24 @@ class AppPasswordDto {
   password: string;
 }
 
-export const SmptValidationGroup: Record<ProviderEnum, Record<ConnectionType, any>> = {
+export const SmptParentKey: Record<string, string> = {
+  [ConnectionType.appPassword]: 'auth',
+};
+
+export const SmptValidationGroup: Record<
+  ProviderEnum,
+  Record<ConnectionType, any>
+> = {
   [ProviderEnum.google]: {
     [ConnectionType.appPassword]: AppPasswordDto,
-    [ConnectionType.oAuth]: {}
+    [ConnectionType.oAuth]: {},
   },
 };
 
 export class SmtpConfigDto extends SharedConfigDto {
   @IsObject()
   @IsOptional()
-  data: Record<string, string>;
+  data?: Record<string, string>;
 }
 
 export class CreateProviderDto {

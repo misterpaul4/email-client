@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Provider } from '@entities';
 import { CreateProviderDto, SmptValidationGroup } from '@interfaces';
-import { validate, validateOrReject, validateSync } from 'class-validator';
+import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -34,9 +34,10 @@ export class ProviderService {
 
     if (errors.length > 0) {
       throw new BadRequestException({
-        errors: errors.map(error => Object.values(error.constraints || {}))
-        .flat()
-        .join(', '),
+        errors: errors
+          .map((error) => Object.values(error.constraints || {}))
+          .flat()
+          .join(', '),
         messsage: 'Missing smtp data',
       });
     }

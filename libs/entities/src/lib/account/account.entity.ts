@@ -41,6 +41,6 @@ export class Account extends BaseEntity {
   @IsObject()
   @IsOptional()
   @ValidateNested()
-  @ManyToOne(() => Provider, { cascade: true })
+  @ManyToOne(() => Provider, (provider) => provider.accounts, { cascade: true })
   provider: Provider;
 }

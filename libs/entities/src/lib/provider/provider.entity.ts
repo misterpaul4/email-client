@@ -14,7 +14,7 @@ export class Provider extends BaseEntity {
   status: ProviderStatus;
 
   @Column({ type: 'text' })
-  conectionType: ConnectionType;
+  connectionType: ConnectionType;
 
   @Column({ type: 'jsonb' })
   smtp: SmtpConfigDto;

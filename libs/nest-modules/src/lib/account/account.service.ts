@@ -19,12 +19,12 @@ export class AccountService {
 
     if (dto.provider) {
       // validate smtp payload
-      await this.providerService.validateSmtpPayload(
+      this.providerService.validateSmtpPayload(
         dto.provider as unknown as CreateProviderDto
       );
     }
 
-    return dto;
+    return this.repo.save(dto);
   }
 
   getMany() {
