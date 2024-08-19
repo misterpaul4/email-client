@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { MailerService } from "./mailer.service";
-import { ProviderModule } from "../provider";
-import { AccountModule } from "../account";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Account, Provider } from "@entities";
 
 @Module({
-  imports: [AccountModule],
+  imports: [TypeOrmModule.forFeature([Account, Provider])],
   providers: [MailerService],
   exports: [MailerService]
 })

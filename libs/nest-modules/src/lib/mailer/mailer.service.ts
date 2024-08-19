@@ -9,14 +9,10 @@ import {
   Transporter,
   createTransport as ct,
 } from 'nodemailer';
-import { Account } from '@entities';
+import { Account, Provider } from '@entities';
 import { SmtpConfigDto } from '@interfaces';
-import { AccountService } from '../account';
-
-interface IProviderData {
-  email: string;
-  smtp: SmtpConfigDto;
-}
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -25,10 +21,13 @@ export class MailerService implements OnModuleInit {
   private transporter?: Transporter<SendMailOptions>;
   private defaultAccount?: Partial<Account>;
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    @InjectRepository(Account) private accountRepo: Repository<Account>,
+    @InjectRepository(Provider) private providerRepo: Repository<Provider>,
+  ) {}
 
   async onModuleInit() {
-    const data = await this.accountService.repo.find({
+    const data = await this.accountRepo.find({
       order: { isDefault: 'DESC', updatedAt: 'DESC' },
       relations: ['provider'],
     });
@@ -39,8 +38,7 @@ export class MailerService implements OnModuleInit {
           const isValid = this.validateTransport(data[index].provider.smtp);
 
           if (isValid) {
-            this.defaultAccount = data[index];
-            this.transporter = this.createTransport(data[index].provider.smtp);
+            this.setDefaults(data[index]);
             break;
           }
         }
@@ -48,11 +46,30 @@ export class MailerService implements OnModuleInit {
     }
   }
 
+  async setDefaults(account: Account) {
+    let provider = account.provider;
+
+    if (!provider) {
+      const resp = await this.providerRepo.findOne({
+        where: { id: account.providerId },
+      });
+
+      if (!resp) {
+        throw new BadRequestException('Missing provider configuration');
+      }
+
+      provider = resp;
+    }
+
+    this.defaultAccount = account;
+    this.transporter = this.createTransport(provider.smtp);
+  }
+
   async sendEmail(accountId: string, payload: SendMailOptions) {
     let transporter = this.transporter;
 
     if (accountId !== this.defaultAccount?.id) {
-      const account = await this.accountService.repo.findOne({
+      const account = await this.accountRepo.findOne({
         where: { id: accountId },
         relations: ['provider'],
       });
