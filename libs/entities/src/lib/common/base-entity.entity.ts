@@ -3,7 +3,7 @@ import { CreateDateColumn, DeleteDateColumn, Index, PrimaryGeneratedColumn, Upda
 export class BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   @Index()
-  id?: string;
+  id: string;
 
   @CreateDateColumn({ type: 'timestamptz', nullable: true })
   createdAt?: Date;

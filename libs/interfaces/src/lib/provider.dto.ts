@@ -1,7 +1,13 @@
 import {ConnectionType, ProviderEnum, ProviderStatus} from '@enums'
 import {IsEnum, ValidateNested} from 'class-validator'
-import { SmtpConfig } from './provider.interface'
 import { Type } from 'class-transformer'
+
+export class SharedConfigDto {
+  host: string
+  port: number
+}
+
+export class SmtpConfigDto extends SharedConfigDto {}
 
 
 export class CreateProviderDto {
@@ -14,7 +20,8 @@ export class CreateProviderDto {
   @IsEnum(ConnectionType)
   conectionType: ConnectionType
 
-  @Type(() => SmtpConfig)
+  @Type(() => SmtpConfigDto)
   @ValidateNested()
-  smtp: SmtpConfig
+  smtp: SmtpConfigDto
 }
+

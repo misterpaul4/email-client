@@ -1,15 +1,24 @@
-import { Column, Entity, OneToOne } from "typeorm";
-import { BaseEntity } from "../common";
-import { Provider } from "../provider";
+import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { BaseEntity } from '../common';
+import { Provider } from '../provider';
 
 @Entity()
 export class Account extends BaseEntity {
-  @Column({type: 'text', nullable: true})
+  @Column({ type: 'text', nullable: true })
   fullName?: string;
 
-  @Column({type: 'text'})
+  @Column({ type: 'text' })
   email: string;
 
-  @OneToOne(() => Provider, {cascade: true, onDelete: 'CASCADE'})
-  provider: Provider
+  @Column({ type: 'boolean', default: false })
+  alias: boolean;
+
+  @Column({ type: 'uuid', nullable: true })
+  providerId?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isDefault: boolean
+
+  @ManyToOne(() => Provider, { cascade: true })
+  provider: Provider;
 }
