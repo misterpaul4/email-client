@@ -1,10 +1,9 @@
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../common';
 import { Provider } from '../provider';
 import {
   IsBoolean,
   IsEmail,
-  IsNotEmptyObject,
   IsObject,
   IsOptional,
   IsString,
@@ -13,7 +12,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateProviderDto } from '@interfaces';
-import { PartialType } from '@nestjs/mapped-types';
 
 @Entity()
 export class Account extends BaseEntity {
@@ -42,6 +40,7 @@ export class Account extends BaseEntity {
   @Type(() => CreateProviderDto)
   @IsObject()
   @IsOptional()
+  @ValidateNested()
   @ManyToOne(() => Provider, { cascade: true })
   provider: Provider;
 }

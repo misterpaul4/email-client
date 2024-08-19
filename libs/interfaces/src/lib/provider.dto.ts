@@ -1,27 +1,49 @@
-import {ConnectionType, ProviderEnum, ProviderStatus} from '@enums'
-import {IsEnum, ValidateNested} from 'class-validator'
-import { Type } from 'class-transformer'
+import { ConnectionType, ProviderEnum } from '@enums';
+import {
+  IsEnum,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class SharedConfigDto {
-  host: string
-  port: number
+  @IsString()
+  host: string;
+
+  @IsNumber()
+  port: number;
 }
 
-export class SmtpConfigDto extends SharedConfigDto {}
+class AppPasswordDto {
+  @IsString()
+  password: string;
+}
 
+export const SmptValidationGroup: Record<ProviderEnum, Record<ConnectionType, any>> = {
+  [ProviderEnum.google]: {
+    [ConnectionType.appPassword]: AppPasswordDto,
+    [ConnectionType.oAuth]: {}
+  },
+};
+
+export class SmtpConfigDto extends SharedConfigDto {
+  @IsObject()
+  @IsOptional()
+  data: Record<string, string>;
+}
 
 export class CreateProviderDto {
   @IsEnum(ProviderEnum)
-  name: ProviderEnum
-
-  @IsEnum(ProviderStatus)
-  status: ProviderStatus
+  name: ProviderEnum;
 
   @IsEnum(ConnectionType)
-  conectionType: ConnectionType
+  connectionType: ConnectionType;
 
   @Type(() => SmtpConfigDto)
   @ValidateNested()
-  smtp: SmtpConfigDto
+  @IsObject()
+  smtp: SmtpConfigDto;
 }
-

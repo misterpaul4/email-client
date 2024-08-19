@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Provider } from '@entities';
+import { CreateProviderDto, SmptValidationGroup } from '@interfaces';
+import { validate, validateOrReject, validateSync } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ProviderService {
@@ -18,5 +21,24 @@ export class ProviderService {
     return this.repo.findOne({
       where,
     });
+  }
+
+  validateSmtpPayload(dto: CreateProviderDto) {
+    if (!dto.smtp.data) {
+      throw new BadRequestException('Missing smtp data');
+    }
+    const validatorClass = SmptValidationGroup[dto.name][dto.connectionType];
+
+    const cpt = plainToInstance(validatorClass, dto.smtp.data);
+    const errors = validateSync(cpt as any);
+
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        errors: errors.map(error => Object.values(error.constraints || {}))
+        .flat()
+        .join(', '),
+        messsage: 'Missing smtp data',
+      });
+    }
   }
 }

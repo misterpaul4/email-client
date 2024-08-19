@@ -1,15 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Account } from '@entities';
+import { ProviderService } from '../provider';
+import { CreateProviderDto } from '@interfaces';
 
 @Injectable()
 export class AccountService {
-  constructor(@InjectRepository(Account) private repo: Repository<Account>) {}
+  constructor(
+    @InjectRepository(Account) private repo: Repository<Account>,
+    private providerService: ProviderService
+  ) {}
 
-  createAccount(dto: Account) {
+  async createAccount(dto: Account) {
     if (!Object.keys(dto.provider || {}).length && !dto.providerId) {
       throw new BadRequestException('Missing provider configuration');
+    }
+
+    if (dto.provider) {
+      // validate smtp payload
+      await this.providerService.validateSmtpPayload(
+        dto.provider as unknown as CreateProviderDto
+      );
     }
 
     return dto;
