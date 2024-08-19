@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import {MailerModule, AccountModule} from '@nest-modules'
+import {MailerModule, AccountModule, ProviderModule} from '@nest-modules'
 
 @Module({
   imports: [
@@ -29,7 +29,8 @@ import {MailerModule, AccountModule} from '@nest-modules'
       inject: [ConfigService],
     }),
     AccountModule,
-    MailerModule
+    MailerModule,
+    ProviderModule
   ],
   controllers: [AppController],
   providers: [AppService],
