@@ -10,7 +10,7 @@ export class Provider extends BaseEntity {
   @Column({ type: 'text' })
   name: ProviderEnum;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', default: ProviderStatus.active })
   status: ProviderStatus;
 
   @Column({ type: 'text' })

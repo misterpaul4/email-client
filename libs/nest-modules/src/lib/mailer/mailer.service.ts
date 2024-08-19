@@ -90,7 +90,7 @@ export class MailerService implements OnModuleInit {
     this.logger.log('Message sent: %s', info.messageId);
   }
 
-  private validateTransport(transport: SmtpConfigDto): boolean {
+  validateTransport(transport: SmtpConfigDto): boolean {
     const transporter = this.createTransport(transport);
     transporter.verify((error: any) => {
       if (error) {
