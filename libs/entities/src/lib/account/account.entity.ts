@@ -10,6 +10,6 @@ export class Account extends BaseEntity {
   @Column({type: 'text'})
   email: string;
 
-  @OneToOne(() => Provider)
+  @OneToOne(() => Provider, {cascade: true, onDelete: 'CASCADE'})
   provider: Provider
 }
