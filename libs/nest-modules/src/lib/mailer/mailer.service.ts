@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType } from '@enums';
 import SMTPConnection = require('nodemailer/lib/smtp-connection');
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -22,52 +23,21 @@ export class MailerService implements OnModuleInit {
 
   private transporter?: Transporter<SendMailOptions>;
   private defaultAccount?: Partial<Account>;
+  private shouldSetDefaultAccountOnMount = false;
 
   constructor(
     @InjectRepository(Account) private accountRepo: Repository<Account>,
-    @InjectRepository(Provider) private providerRepo: Repository<Provider>
-  ) {}
+    @InjectRepository(Provider) private providerRepo: Repository<Provider>,
+    private configService: ConfigService
+  ) {
+    this.shouldSetDefaultAccountOnMount =
+      this.configService.get('SET_DEFAULT_ACCOUNT_ON_MOUNT') === 'true';
+  }
 
   async onModuleInit() {
-    const data = await this.accountRepo.find({
-      order: { isDefault: 'DESC', updatedAt: 'DESC' },
-      relations: ['provider'],
-      take: 3,
-    });
-
-    let defaultIsSet = false;
-
-    if (data.length) {
-      for (let index = 0; index < data.length; index++) {
-        const account = data[index];
-
-        if (account.provider) {
-          this.defaultAccount = account;
-          const { isValid, message } = await this.validateTransport(
-            account.provider
-          );
-
-          if (isValid) {
-            this.setDefaults(account);
-            defaultIsSet = true;
-            break;
-          }
-
-          this.logger.warn({
-            message,
-            accountId: account.id,
-            providerId: account.providerId,
-            provider: account.provider.name,
-          });
-        }
-      }
+    if (this.shouldSetDefaultAccountOnMount) {
+      this.initialize();
     }
-
-    if (!this.transporter) {
-      this.logger.warn('No default account found');
-    }
-
-    return defaultIsSet;
   }
 
   async setDefaults(account: Account) {
@@ -91,9 +61,9 @@ export class MailerService implements OnModuleInit {
 
   async resetDefault(accountId?: string) {
     if (accountId === this.defaultAccount?.id) {
-      const defaultIsSet = await this.onModuleInit();
+      const defaultAccountIsSet = await this.initialize();
 
-      if (!defaultIsSet) {
+      if (!defaultAccountIsSet) {
         this.defaultAccount = undefined;
         this.transporter = undefined;
       }
@@ -187,5 +157,47 @@ export class MailerService implements OnModuleInit {
     };
 
     return ct(payload);
+  }
+
+  private async initialize() {
+    let defaultAccountIsSet = false;
+
+    const data = await this.accountRepo.find({
+      order: { isDefault: 'DESC', updatedAt: 'DESC' },
+      relations: ['provider'],
+      take: 3,
+    });
+
+    if (data.length) {
+      for (let index = 0; index < data.length; index++) {
+        const account = data[index];
+
+        if (account.provider) {
+          this.defaultAccount = account;
+          const { isValid, message } = await this.validateTransport(
+            account.provider
+          );
+
+          if (isValid) {
+            this.setDefaults(account);
+            defaultAccountIsSet = true;
+            break;
+          }
+
+          this.logger.warn({
+            message,
+            accountId: account.id,
+            providerId: account.providerId,
+            provider: account.provider.name,
+          });
+        }
+      }
+    }
+
+    if (!this.transporter) {
+      this.logger.warn('No default account found');
+    }
+
+    return defaultAccountIsSet;
   }
 }
