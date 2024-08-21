@@ -22,13 +22,6 @@ class AppPasswordDto {
   pass: string;
 }
 
-export const SmptParentConfig: Record<string, {key?: string, secure: boolean}> = {
-  [ConnectionType.appPassword]: {
-    key: 'auth',
-    secure: false,
-  },
-};
-
 export const SmptValidationGroup: Record<
   ProviderEnum,
   Record<ConnectionType, any>

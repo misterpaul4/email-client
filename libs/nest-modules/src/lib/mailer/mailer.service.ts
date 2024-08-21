@@ -10,7 +10,7 @@ import {
   createTransport as ct,
 } from 'nodemailer';
 import { Account, Provider } from '@entities';
-import { SendMailDto, SmptParentConfig } from '@interfaces';
+import { SendMailDto } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType } from '@enums';
@@ -135,25 +135,13 @@ export class MailerService implements OnModuleInit {
   }
 
   private createTransport(provider: Provider, email?: string) {
-    const smtp = { ...provider.smtp };
-    const connectionTypeConfig = SmptParentConfig[provider.connectionType];
-    const extract: Record<string, any> = {};
-
-    if (connectionTypeConfig.key) {
-      extract[connectionTypeConfig.key] = {
-        ...smtp.data,
-        user: email || this.defaultAccount?.email,
-      };
-    }
-
-    delete smtp.data;
+    const { smtp } = provider;
 
     const payload = {
       ...smtp,
-      ...extract,
-      secure: connectionTypeConfig.secure,
       type:
         provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
+      auth: { ...smtp.data, user: email || this.defaultAccount?.email },
     };
 
     return ct(payload);
