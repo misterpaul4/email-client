@@ -13,6 +13,7 @@ import { Account, Provider } from '@entities';
 import { SendMailDto, SmptParentConfig } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConnectionType } from '@enums';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -151,6 +152,8 @@ export class MailerService implements OnModuleInit {
       ...smtp,
       ...extract,
       secure: connectionTypeConfig.secure,
+      type:
+        provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
     };
 
     return ct(payload);

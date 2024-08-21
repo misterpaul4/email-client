@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Account } from '@entities';
+import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
 import { CreateProviderDto } from '@interfaces';
 import { MailerService } from '../mailer';
@@ -19,24 +19,33 @@ export class AccountService {
       throw new BadRequestException('Missing provider configuration');
     }
 
-    if (dto.provider) {
-      // validate smtp payload
-      this.providerService.validateSmtpPayload(
-        dto.provider as unknown as CreateProviderDto
-      );
-
-      // validate transport
-      const isValidTransport = await this.mailerService.validateTransport(dto.provider, dto.email);
-
-      if (!isValidTransport) {
-        throw new BadRequestException('Provider configuration is not valid');
-      }
-    }
+    await this.providerValidations(dto.provider, dto.email);
 
     return this.repo.save(dto);
   }
 
   getMany() {
     return this.repo.find();
+  }
+
+  private async providerValidations(provider: Provider, email: string) {
+    if (!provider) {
+      return;
+    }
+
+    // validate smtp payload
+    this.providerService.validateSmtpPayload(
+      provider as unknown as CreateProviderDto
+    );
+
+    // validate transport
+    const isValidTransport = await this.mailerService.validateTransport(
+      provider,
+      email
+    );
+
+    if (!isValidTransport) {
+      throw new BadRequestException('Provider configuration is not valid');
+    }
   }
 }
