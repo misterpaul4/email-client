@@ -30,6 +30,10 @@ export const SmptValidationGroup: Record<
     [ConnectionType.appPassword]: AppPasswordDto,
     [ConnectionType.oAuth]: {},
   },
+  [ProviderEnum.outlook]: {
+    [ConnectionType.appPassword]: AppPasswordDto,
+    [ConnectionType.oAuth]: {},
+  },
 };
 
 export class SmtpConfigDto extends SharedConfigDto {

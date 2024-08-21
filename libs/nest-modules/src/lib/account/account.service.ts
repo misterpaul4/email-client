@@ -39,13 +39,13 @@ export class AccountService {
     );
 
     // validate transport
-    const isValidTransport = await this.mailerService.validateTransport(
+    const { isValid, message } = await this.mailerService.validateTransport(
       provider,
       email
     );
 
-    if (!isValidTransport) {
-      throw new BadRequestException('Provider configuration is not valid');
+    if (!isValid) {
+      throw new BadRequestException(message);
     }
   }
 }

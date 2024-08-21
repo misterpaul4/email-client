@@ -35,18 +35,30 @@ export class MailerService implements OnModuleInit {
       take: 3,
     });
 
+    let defaultIsSet = false;
+
     if (data.length) {
       for (let index = 0; index < data.length; index++) {
         const account = data[index];
 
         if (account.provider) {
           this.defaultAccount = account;
-          const isValid = await this.validateTransport(account.provider);
+          const { isValid, message } = await this.validateTransport(
+            account.provider
+          );
 
           if (isValid) {
             this.setDefaults(account);
+            defaultIsSet = true;
             break;
           }
+
+          this.logger.warn({
+            message,
+            accountId: account.id,
+            providerId: account.providerId,
+            provider: account.provider.name,
+          });
         }
       }
     }
@@ -54,6 +66,8 @@ export class MailerService implements OnModuleInit {
     if (!this.transporter) {
       this.logger.warn('No default account found');
     }
+
+    return defaultIsSet;
   }
 
   async setDefaults(account: Account) {
@@ -72,7 +86,18 @@ export class MailerService implements OnModuleInit {
     }
 
     this.defaultAccount = account;
-    this.transporter = this.createTransport(provider);
+    this.transporter = this.createTransport(provider, account.email);
+  }
+
+  async resetDefault(accountId?: string) {
+    if (accountId === this.defaultAccount?.id) {
+      const defaultIsSet = await this.onModuleInit();
+
+      if (!defaultIsSet) {
+        this.defaultAccount = undefined;
+        this.transporter = undefined;
+      }
+    }
   }
 
   async sendEmail(dto: SendMailDto) {
@@ -91,7 +116,7 @@ export class MailerService implements OnModuleInit {
       }
 
       account = resp;
-      transporter = this.createTransport(resp.provider);
+      transporter = this.createTransport(resp.provider, account.email);
     }
 
     if (!transporter) {
@@ -111,7 +136,10 @@ export class MailerService implements OnModuleInit {
   async validateTransport(
     provider: Provider,
     email?: string
-  ): Promise<boolean> {
+  ): Promise<{
+    message?: string;
+    isValid: boolean;
+  }> {
     const transport = provider.smtp;
     const transporter = this.createTransport(provider, email);
 
@@ -122,17 +150,26 @@ export class MailerService implements OnModuleInit {
         message: 'Server is ready to take messages',
         transport,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const message = `Configurations is not valid for provider${
+        provider.id ? ' with ID: ' + provider.id : ''
+      }: ${error.response}`;
+
       this.logger.error({
-        message: `Provider configurations is not valid for provider with ID: ${provider.id}`,
+        message,
         error,
         transport,
       });
 
-      return false;
+      return {
+        message,
+        isValid: false,
+      };
     }
 
-    return true;
+    return {
+      isValid: true,
+    };
   }
 
   private createTransport(provider: Provider, email?: string) {

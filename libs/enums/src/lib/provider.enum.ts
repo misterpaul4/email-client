@@ -1,5 +1,6 @@
 export enum ProviderEnum {
-  google = 'google'
+  google = 'google',
+  outlook = 'outlook',
 }
 
 export enum ConnectionType {
