@@ -4,12 +4,14 @@ import { Repository } from 'typeorm';
 import { Account } from '@entities';
 import { ProviderService } from '../provider';
 import { CreateProviderDto } from '@interfaces';
+import { MailerService } from '../mailer';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectRepository(Account) private repo: Repository<Account>,
-    private providerService: ProviderService
+    private providerService: ProviderService,
+    private mailerService: MailerService
   ) {}
 
   async createAccount(dto: Account) {
@@ -22,6 +24,13 @@ export class AccountService {
       this.providerService.validateSmtpPayload(
         dto.provider as unknown as CreateProviderDto
       );
+
+      // validate transport
+      const isValidTransport = await this.mailerService.validateTransport(dto.provider, dto.email);
+
+      if (!isValidTransport) {
+        throw new BadRequestException('Provider configuration is not valid');
+      }
     }
 
     return this.repo.save(dto);

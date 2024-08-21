@@ -19,11 +19,14 @@ export class SharedConfigDto {
 
 class AppPasswordDto {
   @IsString()
-  password: string;
+  pass: string;
 }
 
-export const SmptParentKey: Record<string, string> = {
-  [ConnectionType.appPassword]: 'auth',
+export const SmptParentConfig: Record<string, {key?: string, secure: boolean}> = {
+  [ConnectionType.appPassword]: {
+    key: 'auth',
+    secure: false,
+  },
 };
 
 export const SmptValidationGroup: Record<

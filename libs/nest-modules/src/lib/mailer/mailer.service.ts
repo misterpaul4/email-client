@@ -10,7 +10,7 @@ import {
   createTransport as ct,
 } from 'nodemailer';
 import { Account, Provider } from '@entities';
-import { SendMailDto, SmptParentKey } from '@interfaces';
+import { SendMailDto, SmptParentConfig } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -30,20 +30,27 @@ export class MailerService implements OnModuleInit {
     const data = await this.accountRepo.find({
       order: { isDefault: 'DESC', updatedAt: 'DESC' },
       relations: ['provider'],
+      take: 3,
     });
 
     if (data.length) {
       for (let index = 0; index < data.length; index++) {
-        if (data[index].provider) {
-          this.defaultAccount = data[index];
-          const isValid = this.validateTransport(data[index].provider);
+        const account = data[index];
+
+        if (account.provider) {
+          this.defaultAccount = account;
+          const isValid = await this.validateTransport(account.provider);
 
           if (isValid) {
-            this.setDefaults(data[index]);
+            this.setDefaults(account);
             break;
           }
         }
       }
+    }
+
+    if (!this.transporter) {
+      this.logger.warn('No default account found');
     }
   }
 
@@ -99,38 +106,43 @@ export class MailerService implements OnModuleInit {
     this.logger.log('Message sent: %s', info.messageId);
   }
 
-  validateTransport(provider: Provider): boolean {
+  async validateTransport(
+    provider: Provider,
+    email?: string
+  ): Promise<boolean> {
     const transport = provider.smtp;
-    const transporter = this.createTransport(provider);
-    transporter.verify((error: any) => {
-      if (error) {
-        this.logger.error({
-          message: 'Provider configurations is not valid',
-          error,
-          transport,
-        });
+    const transporter = this.createTransport(provider, email);
 
-        return false;
-      }
+    try {
+      await transporter.verify();
 
       this.logger.log({
         message: 'Server is ready to take messages',
         transport,
       });
+    } catch (error) {
+      this.logger.error({
+        message: `Provider configurations is not valid for provider with ID: ${provider.id}`,
+        error,
+        transport,
+      });
 
-      return true;
-    });
+      return false;
+    }
 
     return true;
   }
 
-  private createTransport(provider: Provider) {
+  private createTransport(provider: Provider, email?: string) {
     const smtp = { ...provider.smtp };
-    const dataKey = SmptParentKey[provider.connectionType];
+    const connectionTypeConfig = SmptParentConfig[provider.connectionType];
     const extract: Record<string, any> = {};
 
-    if (dataKey) {
-      extract[dataKey] = { ...smtp.data, user: this.defaultAccount?.email };
+    if (connectionTypeConfig.key) {
+      extract[connectionTypeConfig.key] = {
+        ...smtp.data,
+        user: email || this.defaultAccount?.email,
+      };
     }
 
     delete smtp.data;
@@ -138,7 +150,7 @@ export class MailerService implements OnModuleInit {
     const payload = {
       ...smtp,
       ...extract,
-      secure: smtp.port == 465,
+      secure: connectionTypeConfig.secure,
     };
 
     return ct(payload);
