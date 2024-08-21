@@ -4,7 +4,6 @@
   "license": "MIT",
   "scripts": {
     "start": "nx serve email-client",
-    "dev": "nx serve email-client --watch",
     "nest:lib": " nx generate @nrwl/nest:library"
   },
   "private": true,
