@@ -14,6 +14,7 @@ import { SendMailDto } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType } from '@enums';
+import SMTPConnection = require('nodemailer/lib/smtp-connection');
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -137,11 +138,15 @@ export class MailerService implements OnModuleInit {
   private createTransport(provider: Provider, email?: string) {
     const { smtp } = provider;
 
-    const payload = {
+    const payload: SMTPConnection['options'] = {
       ...smtp,
-      type:
-        provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
-      auth: { ...smtp.data, user: email || this.defaultAccount?.email },
+      auth: {
+        ...smtp.data,
+        user: (email || this.defaultAccount?.email) as string,
+        pass: smtp.data?.['pass'] as string,
+        type:
+          provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
+      },
     };
 
     return ct(payload);
