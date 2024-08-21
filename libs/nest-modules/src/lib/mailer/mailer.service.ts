@@ -22,7 +22,7 @@ export class MailerService implements OnModuleInit {
   private logger = new Logger(MailerService.name);
 
   private transporter?: Transporter<SendMailOptions>;
-  private defaultAccount?: Partial<Account>;
+  private defaultAccount?: Account;
   private shouldSetDefaultAccountOnMount = false;
 
   constructor(
