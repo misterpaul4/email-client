@@ -32,11 +32,6 @@ export class Account extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   providerId?: string;
 
-  @IsBoolean()
-  @IsOptional()
-  @Column({ type: 'boolean', default: false })
-  isDefault: boolean;
-
   @Type(() => CreateProviderDto)
   @IsObject()
   @IsOptional()

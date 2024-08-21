@@ -16,6 +16,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType } from '@enums';
 import SMTPConnection = require('nodemailer/lib/smtp-connection');
 import { ConfigService } from '@nestjs/config';
+import { STATUS_CODES } from 'http';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -105,7 +106,7 @@ export class MailerService implements OnModuleInit {
 
   async validateTransport(
     provider: Provider,
-    email?: string
+    email: string
   ): Promise<{
     message?: string;
     isValid: boolean;
@@ -149,8 +150,8 @@ export class MailerService implements OnModuleInit {
       ...smtp,
       auth: {
         ...smtp.data,
-        user: (email || this.defaultAccount?.email) as string,
-        pass: smtp.data?.['pass'] as string,
+        user: email || this.defaultAccount?.email || '',
+        pass: smtp.data?.['pass'] || '',
         type:
           provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
       },
@@ -163,7 +164,7 @@ export class MailerService implements OnModuleInit {
     let defaultAccountIsSet = false;
 
     const data = await this.accountRepo.find({
-      order: { isDefault: 'DESC', updatedAt: 'DESC' },
+      order: { createdAt: 'ASC' },
       relations: ['provider'],
       take: 3,
     });
@@ -173,9 +174,9 @@ export class MailerService implements OnModuleInit {
         const account = data[index];
 
         if (account.provider) {
-          this.defaultAccount = account;
           const { isValid, message } = await this.validateTransport(
-            account.provider
+            account.provider,
+            account.email
           );
 
           if (isValid) {
@@ -199,5 +200,24 @@ export class MailerService implements OnModuleInit {
     }
 
     return defaultAccountIsSet;
+  }
+
+  getDefaultAccount() {
+    if (!this.defaultAccount) {
+      return {
+        message: 'No default account found',
+        statusText: STATUS_CODES[404],
+        status: 404,
+      };
+    }
+
+    return {
+      provider: this.defaultAccount.provider.name,
+      email: this.defaultAccount.email,
+      alias: this.defaultAccount.alias,
+      fullName: this.defaultAccount.fullName || undefined,
+      providerStatus: this.defaultAccount.provider.status,
+      connectionType: this.defaultAccount.provider.connectionType,
+    };
   }
 }
