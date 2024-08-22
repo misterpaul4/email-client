@@ -1,0 +1,9 @@
+{
+  "name": "email-client-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/email-client-ui/src",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project email-client-ui --web",
+  "targets": {}
+}
