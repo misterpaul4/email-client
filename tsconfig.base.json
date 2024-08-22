@@ -15,9 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@interfaces": ["libs/interfaces/src/index.ts"],
+      "@constants": ["libs/constants/src/index.ts"],
       "@entities": ["libs/entities/src/index.ts"],
       "@enums": ["libs/enums/src/index.ts"],
+      "@interfaces": ["libs/interfaces/src/index.ts"],
       "@nest-modules": ["libs/nest-modules/src/index.ts"]
     }
   },
