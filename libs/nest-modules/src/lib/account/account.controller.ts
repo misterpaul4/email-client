@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { Account } from '@entities';
 
@@ -14,5 +14,10 @@ export class AccountController {
   @Post()
   createAccount(@Body() dto: Account) {
     return this.service.createAccount(dto);
+  }
+
+  @Delete(':id')
+  deleteAccount(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.service.deleteAccount(id);
   }
 }

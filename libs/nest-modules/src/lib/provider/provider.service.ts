@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Provider } from '@entities';
-import { CreateProviderDto, SmptValidationGroup } from '@interfaces';
+import { SmptValidationGroup } from '@interfaces';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -23,7 +23,7 @@ export class ProviderService {
     });
   }
 
-  validateSmtpPayload(dto: CreateProviderDto) {
+  validateSmtpPayload(dto: Provider) {
     if (!dto.smtp.data) {
       throw new BadRequestException('Missing smtp data');
     }

@@ -1,13 +1,5 @@
 import { ConnectionType, ProviderEnum } from '@enums';
-import {
-  IsEnum,
-  IsNumber,
-  IsObject,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class SharedConfigDto {
   @IsString()
@@ -40,17 +32,4 @@ export class SmtpConfigDto extends SharedConfigDto {
   @IsObject()
   @IsOptional()
   data?: Record<string, string>;
-}
-
-export class CreateProviderDto {
-  @IsEnum(ProviderEnum)
-  name: ProviderEnum;
-
-  @IsEnum(ConnectionType)
-  connectionType: ConnectionType;
-
-  @Type(() => SmtpConfigDto)
-  @ValidateNested()
-  @IsObject()
-  smtp: SmtpConfigDto;
 }

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
-import { CreateProviderDto } from '@interfaces';
 import { MailerService } from '../mailer';
 
 @Injectable()
@@ -34,9 +33,7 @@ export class AccountService {
     }
 
     // validate smtp payload
-    this.providerService.validateSmtpPayload(
-      provider as unknown as CreateProviderDto
-    );
+    this.providerService.validateSmtpPayload(provider);
 
     // validate transport
     const { isValid, message } = await this.mailerService.validateTransport(
@@ -47,5 +44,9 @@ export class AccountService {
     if (!isValid) {
       throw new BadRequestException(message);
     }
+  }
+
+  async deleteAccount(id: string) {
+    return this.repo.delete({ id });
   }
 }

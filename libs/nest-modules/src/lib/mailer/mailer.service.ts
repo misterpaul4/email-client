@@ -202,7 +202,12 @@ export class MailerService implements OnModuleInit {
     return defaultAccountIsSet;
   }
 
-  getDefaultAccount() {
+  getDefaultAccount(): {
+    status: number;
+    statusText?: string;
+    message?: string;
+    data?: Partial<Account>;
+  } {
     if (!this.defaultAccount) {
       return {
         message: 'No default account found',
@@ -212,12 +217,10 @@ export class MailerService implements OnModuleInit {
     }
 
     return {
-      provider: this.defaultAccount.provider.name,
-      email: this.defaultAccount.email,
-      alias: this.defaultAccount.alias,
-      fullName: this.defaultAccount.fullName || undefined,
-      providerStatus: this.defaultAccount.provider.status,
-      connectionType: this.defaultAccount.provider.connectionType,
+      status: 200,
+      data: {
+        email: this.defaultAccount.email,
+      },
     };
   }
 }

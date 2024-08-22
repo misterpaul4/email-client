@@ -2,7 +2,6 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../common';
 import { Provider } from '../provider';
 import {
-  IsBoolean,
   IsEmail,
   IsObject,
   IsOptional,
@@ -11,7 +10,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreateProviderDto } from '@interfaces';
 
 @Entity()
 export class Account extends BaseEntity {
@@ -32,7 +30,7 @@ export class Account extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   providerId?: string;
 
-  @Type(() => CreateProviderDto)
+  @Type(() => Provider)
   @IsObject()
   @IsOptional()
   @ValidateNested()
