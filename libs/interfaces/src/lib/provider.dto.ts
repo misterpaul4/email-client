@@ -1,5 +1,5 @@
 import { ConnectionType, ProviderEnum } from '@enums';
-import { IsNumber, IsNumberString, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class SharedConfigDto {
   @IsString()
@@ -29,7 +29,7 @@ class Oauth2Dto {
   @IsString()
   accessToken: string;
 
-  @IsNumberString()
+  @IsNumber()
   @IsOptional()
   expires?: string;
 

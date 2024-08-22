@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
 import { MailerService } from '../mailer';
+import { DefaultProviderHostPort } from '@enums';
 
 @Injectable()
 export class AccountService {
@@ -18,7 +19,7 @@ export class AccountService {
       throw new BadRequestException('Missing provider configuration');
     }
 
-    await this.providerValidations(dto.provider, dto.email);
+    dto.provider = await this.providerValidations(dto.provider, dto.email);
 
     return this.repo.save(dto);
   }
@@ -27,9 +28,12 @@ export class AccountService {
     return this.repo.find();
   }
 
-  private async providerValidations(provider: Provider, email: string) {
+  private async providerValidations(
+    provider: Provider,
+    email: string
+  ): Promise<Provider> {
     if (!provider) {
-      return;
+      provider;
     }
 
     // validate smtp payload
@@ -44,6 +48,25 @@ export class AccountService {
     if (!isValid) {
       throw new BadRequestException(message);
     }
+
+    const { smtp, name: providerName } = provider;
+
+    const result = { ...provider };
+
+    if (smtp) {
+      const { host: defaultHost, port: defaultPort } =
+        DefaultProviderHostPort[providerName];
+
+      if (!smtp.host) {
+        result.smtp.host = defaultHost;
+      }
+
+      if (!smtp.port) {
+        result.smtp.port = defaultPort;
+      }
+    }
+
+    return result;
   }
 
   async deleteAccount(id: string) {

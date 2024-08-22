@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { MailerService } from '../mailer';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DefaultProviderHostPort } from '@enums';
 
 @EventSubscriber()
 export class AccountSubscriber implements EntitySubscriberInterface<Account> {
@@ -18,22 +17,6 @@ export class AccountSubscriber implements EntitySubscriberInterface<Account> {
     private mailerService: MailerService
   ) {
     dataSource.subscribers.push(this);
-  }
-
-  beforeInsert(event: InsertEvent<Account>){
-    const { smtp, name: providerName} = event.entity.provider
-
-    if (smtp) {
-      const { host: defaultHost, port: defaultPort } = DefaultProviderHostPort[providerName]
-
-      if (!smtp.host) {
-        event.entity.provider.smtp.host = defaultHost;
-      }
-
-      if (!smtp.port) {
-        event.entity.provider.smtp.port = defaultPort;
-      }
-    }
   }
 
   afterInsert(event: InsertEvent<Account>) {
