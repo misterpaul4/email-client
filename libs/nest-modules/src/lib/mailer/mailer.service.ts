@@ -13,7 +13,7 @@ import { Account, Provider } from '@entities';
 import { SendMailDto } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConnectionType } from '@enums';
+import { ConnectionType, ProviderStatus } from '@enums';
 import SMTPConnection = require('nodemailer/lib/smtp-connection');
 import { ConfigService } from '@nestjs/config';
 import { STATUS_CODES } from 'http';
@@ -120,17 +120,35 @@ export class MailerService implements OnModuleInit {
       this.logger.log({
         message: 'Server is ready to take messages',
         transport,
+        email,
       });
     } catch (error: any) {
+      const existingProvider = provider.id;
+
       const message = `Configurations is not valid for provider${
-        provider.id ? ' with ID: ' + provider.id : ''
+        existingProvider ? ' with ID: ' + provider.id : ''
       }: ${error.response}`;
 
       this.logger.error({
         message,
         error,
         transport,
+        email,
       });
+
+      // set provider inactive
+      if (existingProvider && provider.status === ProviderStatus.active) {
+        this.providerRepo
+          .update({ id: existingProvider }, { status: ProviderStatus.inactive })
+          .catch((error) => {
+            this.logger.error({
+              message: 'Failed to update provider status',
+              error,
+              transport,
+              email,
+            });
+          });
+      }
 
       return {
         message,
@@ -163,11 +181,13 @@ export class MailerService implements OnModuleInit {
   private async initialize() {
     let defaultAccountIsSet = false;
 
-    const data = await this.accountRepo.find({
-      order: { createdAt: 'ASC' },
-      relations: ['provider'],
-      take: 3,
-    });
+    const data = await this.accountRepo
+      .createQueryBuilder('account')
+      .orderBy('provider.status', 'ASC')
+      .addOrderBy('account.createdAt', 'ASC')
+      .innerJoinAndSelect('account.provider', 'provider')
+      .take(5)
+      .getMany();
 
     if (data.length) {
       for (let index = 0; index < data.length; index++) {
