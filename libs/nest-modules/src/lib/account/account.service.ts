@@ -39,16 +39,6 @@ export class AccountService {
     // validate smtp payload
     this.providerService.validateSmtpPayload(provider);
 
-    // validate transport
-    const { isValid, message } = await this.mailerService.validateTransport(
-      provider,
-      email
-    );
-
-    if (!isValid) {
-      throw new BadRequestException(message);
-    }
-
     const { smtp, name: providerName } = provider;
 
     const result = { ...provider };
@@ -64,6 +54,16 @@ export class AccountService {
       if (!smtp.port) {
         result.smtp.port = defaultPort;
       }
+    }
+
+    // validate transport
+    const { isValid, message } = await this.mailerService.validateTransport(
+      provider,
+      email
+    );
+
+    if (!isValid) {
+      throw new BadRequestException(message);
     }
 
     return result;

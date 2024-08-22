@@ -1,6 +1,7 @@
 export enum ProviderEnum {
   google = 'google',
   outlook = 'outlook',
+  zoho = 'zoho'
 }
 
 export enum ConnectionType {
@@ -24,5 +25,9 @@ export const DefaultProviderHostPort: Record<
   [ProviderEnum.outlook]: {
     host: 'smtp-mail.outlook.com',
     port: 587,
+  },
+  [ProviderEnum.zoho]: {
+    host: 'smtp.zoho.com',
+    port: 465,
   },
 } as const;

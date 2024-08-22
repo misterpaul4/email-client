@@ -125,9 +125,9 @@ export class MailerService implements OnModuleInit {
     } catch (error: any) {
       const existingProvider = provider.id;
 
-      const message = `Configurations is not valid for provider${
-        existingProvider ? ' with ID: ' + provider.id : ''
-      }: ${error.response}`;
+      const message = 'Configurations is not valid for provider'
+        .concat(existingProvider ? ` with ID: ${provider.id}` : '')
+        .concat(error.response ? `: ${error.response}` : '');
 
       this.logger.error({
         message,
