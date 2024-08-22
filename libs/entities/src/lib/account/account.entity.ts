@@ -19,11 +19,8 @@ export class Account extends BaseEntity {
   fullName?: string;
 
   @IsEmail()
-  @Column({ type: 'text' })
+  @Column({ type: 'text', unique: true })
   email: string;
-
-  @Column({ type: 'boolean', default: false })
-  alias: boolean;
 
   @IsUUID('4')
   @IsOptional()
