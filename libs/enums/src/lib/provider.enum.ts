@@ -12,3 +12,14 @@ export enum ProviderStatus {
   active = 'active',
   inactive = 'inactive'
 }
+
+export const DefaultProviderHostPort = {
+  [ProviderEnum.google]: {
+    host: 'smtp.gmail.com',
+    port: 465,
+  },
+  [ProviderEnum.outlook]: {
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+  }
+} as const
