@@ -14,7 +14,7 @@ export enum ProviderStatus {
   inactive = 'inactive',
 }
 
-export const DefaultProviderHostPort: Record<
+export const ProviderDefaults: Record<
   ProviderEnum,
   { host: string; port?: number }
 > = {

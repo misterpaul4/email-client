@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
 import { MailerService } from '../mailer';
-import { DefaultProviderHostPort } from '@enums';
+import { ProviderDefaults } from '@enums';
 
 @Injectable()
 export class AccountService {
@@ -45,7 +45,7 @@ export class AccountService {
 
     if (smtp) {
       const { host: defaultHost, port: defaultPort } =
-        DefaultProviderHostPort[providerName];
+        ProviderDefaults[providerName];
 
       if (!smtp.host) {
         result.smtp.host = defaultHost;

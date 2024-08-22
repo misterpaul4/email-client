@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-
-export function App() {
+export const googleOauth2 = () => {
   const googleUrl = new URL('https://accounts.google.com/o/oauth2/auth');
 
   googleUrl.searchParams.append(
@@ -17,21 +14,5 @@ export function App() {
   googleUrl.searchParams.append('scope', 'https://mail.google.com/');
   googleUrl.searchParams.append('response_type', 'code');
 
-  const { hash } = useLocation();
-
-  useEffect(() => {
-    // validate hash
-    // display loader
-    // token exchange request
-  }, [hash]);
-
-
-  return (
-    <div>
-      Home
-      <a href={googleUrl.toString()}>Click Me</a>
-    </div>
-  );
-}
-
-export default App;
+  return googleUrl.toString();
+};
