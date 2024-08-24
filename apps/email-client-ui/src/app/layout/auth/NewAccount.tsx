@@ -1,4 +1,4 @@
-import { googleOauth2 } from "../../constants/Providers";
+import { googleOauth2 } from "../../constants/providers";
 
 const NewAccount = () => {
   return <div>
