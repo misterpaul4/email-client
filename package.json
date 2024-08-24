@@ -5,6 +5,7 @@
   "scripts": {
     "start": "nx serve email-client",
     "start-ui": "nx serve email-client-ui",
+    "start-bridge": "nx serve email-client-bridge",
     "clear-cache": "nx clear-cache"
   },
   "private": true,
