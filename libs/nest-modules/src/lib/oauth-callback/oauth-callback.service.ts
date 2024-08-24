@@ -12,7 +12,7 @@ export class OauthCallbackService {
   private googleClientSecret?: string;
 
   constructor(
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
     private readonly httpService: HttpService
   ) {
     this.googleClientId = this.configService.get('VITE_GOOGLE_CLIENT_ID');
@@ -46,6 +46,7 @@ export class OauthCallbackService {
         })
       );
 
+    // TODO: redirect to resource handler
     return tokenReqResponse;
   }
 }
