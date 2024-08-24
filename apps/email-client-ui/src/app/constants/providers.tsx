@@ -1,18 +1,18 @@
+import { GOOGLE_REDIRECT_URI, GOOGLE_AUTHORIZATION_URL } from '@constants';
+
 export const googleOauth2 = () => {
-  const googleUrl = new URL('https://accounts.google.com/o/oauth2/auth');
+  const googleUrl = new URL(GOOGLE_AUTHORIZATION_URL);
 
   googleUrl.searchParams.append(
     'client_id',
     import.meta.env.VITE_GOOGLE_CLIENT_ID
   );
 
-  googleUrl.searchParams.append(
-    'redirect_uri',
-    import.meta.env.VITE_GOOGLE_REDIRECT_URI
-  );
-
+  googleUrl.searchParams.append('redirect_uri', GOOGLE_REDIRECT_URI);
   googleUrl.searchParams.append('scope', 'https://mail.google.com/');
   googleUrl.searchParams.append('response_type', 'code');
+  googleUrl.searchParams.append('access_type', 'offline');
+  googleUrl.searchParams.append('prompt', 'consent');
 
   return googleUrl.toString();
 };

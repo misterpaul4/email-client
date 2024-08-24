@@ -9,9 +9,6 @@ export class OauthCallbackController {
   googleCallbackHandler(
     @Query('code') code: string,
   ) {
-    return {
-      message: "Request successful!",
-      code
-    }
+    return this.service.handleGoogleCallback(code);
   }
 }
