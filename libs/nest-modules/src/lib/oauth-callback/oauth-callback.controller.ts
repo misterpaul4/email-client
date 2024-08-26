@@ -8,7 +8,8 @@ export class OauthCallbackController {
   @Get('google')
   googleCallbackHandler(
     @Query('code') code: string,
+    @Query('state') state: string // client socket id
   ) {
-    return this.service.handleGoogleCallback(code);
+    return this.service.handleGoogleCallback(code, state);
   }
 }

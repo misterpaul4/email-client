@@ -13,6 +13,7 @@ export const googleOauth2 = () => {
   googleUrl.searchParams.append('response_type', 'code');
   googleUrl.searchParams.append('access_type', 'offline');
   googleUrl.searchParams.append('prompt', 'consent');
+  googleUrl.searchParams.append('state', '12345');
 
   return googleUrl.toString();
 };

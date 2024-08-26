@@ -19,7 +19,7 @@ export class OauthCallbackService {
     this.googleClientSecret = this.configService.get('GOOGLE_CLIENT_SECRET');
   }
 
-  handleGoogleCallback(code: string) {
+  async handleGoogleCallback(code: string, clientId: string) {
     // exchange code for tokens
     if (!this.googleClientId || !this.googleClientSecret) {
       return {
@@ -36,17 +36,16 @@ export class OauthCallbackService {
     params.append('redirect_uri', GOOGLE_REDIRECT_URI);
     params.append('grant_type', 'authorization_code');
 
-    const tokenReqResponse = this.httpService
+    const tokenReqResponse = await this.httpService
       .post(GOOGLE_TOKEN_URI, params)
       .pipe(
-        map((response) => response.data),
         catchError((error) => {
           this.logger.error(error.message);
           throw new Error(`Action cannot be completed: ${error.message}`);
         })
-      );
+      ).toPromise();
 
-    // TODO: redirect to resource handler
-    return tokenReqResponse;
+    // TODO: emit message to source client
+    return tokenReqResponse
   }
 }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { OauthCallbackModule } from '@nest-modules';
+import { GatewayModule, OauthCallbackModule } from '@nest-modules';
 
 @Module({
-  imports: [OauthCallbackModule],
+  imports: [OauthCallbackModule, GatewayModule],
   controllers: [AppController],
   providers: [AppService],
 })
