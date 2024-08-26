@@ -39,6 +39,7 @@ export class OauthCallbackService {
     const tokenReqResponse = await this.httpService
       .post(GOOGLE_TOKEN_URI, params)
       .pipe(
+        map((response) => response.data),
         catchError((error) => {
           this.logger.error(error.message);
           throw new Error(`Action cannot be completed: ${error.message}`);
