@@ -1,7 +1,6 @@
 import { GOOGLE_REDIRECT_URI, GOOGLE_AUTHORIZATION_URL } from '@constants';
-import socket from '../api/socket';
 
-export const googleOauth2 = () => {
+export const googleOauth2 = (socketId: string) => {
   const googleUrl = new URL(GOOGLE_AUTHORIZATION_URL);
 
   googleUrl.searchParams.append(
@@ -14,7 +13,7 @@ export const googleOauth2 = () => {
   googleUrl.searchParams.append('response_type', 'code');
   googleUrl.searchParams.append('access_type', 'offline');
   googleUrl.searchParams.append('prompt', 'consent');
-  googleUrl.searchParams.append('state', socket.id || '');
+  googleUrl.searchParams.append('state', socketId);
 
   return googleUrl.toString();
 };

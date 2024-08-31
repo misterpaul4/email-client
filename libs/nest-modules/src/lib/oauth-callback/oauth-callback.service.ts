@@ -3,6 +3,9 @@ import { GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URI } from '@constants';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map, catchError } from 'rxjs/operators';
+import { GatewayService } from '../gateway';
+import { WebSocketEvents } from '@enums';
+import { GoogleOauthTokenResponse } from '@interfaces';
 
 @Injectable()
 export class OauthCallbackService {
@@ -13,7 +16,8 @@ export class OauthCallbackService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly gatewayService: GatewayService
   ) {
     this.googleClientId = this.configService.get('VITE_GOOGLE_CLIENT_ID');
     this.googleClientSecret = this.configService.get('GOOGLE_CLIENT_SECRET');
@@ -22,6 +26,7 @@ export class OauthCallbackService {
   async handleGoogleCallback(code: string, clientId: string) {
     // exchange code for tokens
     if (!this.googleClientId || !this.googleClientSecret) {
+      // TODO: redirect to failed url with param as reason for failure
       return {
         message: 'Action cannot be completed',
         error: 'Missing parameters',
@@ -36,17 +41,41 @@ export class OauthCallbackService {
     params.append('redirect_uri', GOOGLE_REDIRECT_URI);
     params.append('grant_type', 'authorization_code');
 
-    const tokenReqResponse = await this.httpService
+    const tokenReqResponse: GoogleOauthTokenResponse = await this.httpService
       .post(GOOGLE_TOKEN_URI, params)
       .pipe(
         map((response) => response.data),
         catchError((error) => {
           this.logger.error(error.message);
+          // TODO: redirect to failed url
           throw new Error(`Action cannot be completed: ${error.message}`);
         })
-      ).toPromise();
+      )
+      .toPromise();
 
-    // TODO: emit message to source client
-    return tokenReqResponse
+    if (!tokenReqResponse.access_token) {
+      // TODO: redirect to failed url
+      return {
+        message: 'Action cannot be completed',
+        error: 'Missing parameters',
+      };
+    }
+
+    const isDelivered = await this.gatewayService.emitAndWait({
+      clientId,
+      payload: tokenReqResponse,
+      event: WebSocketEvents.OauthCred,
+    });
+
+    if (!isDelivered) {
+      // TODO: redirect to failed url
+      return {
+        message: 'Action cannot be completed',
+        error: 'Unknown error occurred',
+      };
+    }
+
+    // TODO: redirect to success url
+    return true;
   }
 }

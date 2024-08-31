@@ -61,3 +61,11 @@ export class SmtpConfigDto extends SharedConfigDto {
   @IsOptional()
   data?: Record<string, string>;
 }
+
+export interface GoogleOauthTokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+}
