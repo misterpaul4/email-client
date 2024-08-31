@@ -4,7 +4,6 @@ export function HomeLayout() {
 
   return (
     <div>
-      Home Layout
       <Outlet />
     </div>
   );

@@ -1,6 +1,14 @@
 import { GATEWAY_CLIENT_OPTIONS } from '@constants';
-import { WebSocketEvents } from '@enums';
-import { GoogleOauthTokenResponse, IGatewayClientModuleOptions } from '@interfaces';
+import {
+  ConnectionType,
+  ProviderDefaults,
+  ProviderStatus,
+  WebSocketEvents,
+} from '@enums';
+import {
+  IGatewayClientModuleOptions,
+  ProviderCallbackReponseData,
+} from '@interfaces';
 import {
   HttpException,
   HttpStatus,
@@ -10,6 +18,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { io, Socket } from 'socket.io-client';
+import { AccountService } from '../account';
 
 @Injectable()
 export class GatewayClientService implements OnModuleInit {
@@ -19,7 +28,8 @@ export class GatewayClientService implements OnModuleInit {
 
   constructor(
     @Inject(GATEWAY_CLIENT_OPTIONS)
-    private readonly options: IGatewayClientModuleOptions
+    private readonly options: IGatewayClientModuleOptions,
+    private accountService: AccountService
   ) {
     if (!this.options) {
       this.logger.warn('Missing gateway client options');
@@ -45,9 +55,28 @@ export class GatewayClientService implements OnModuleInit {
 
     this.socket.on(
       WebSocketEvents.OauthCred,
-      (data: GoogleOauthTokenResponse, callback: (response: boolean) => void) => {
+      async (
+        data: ProviderCallbackReponseData,
+        callback: (response: boolean) => void
+      ) => {
         this.logger.log(`Received message: ${data}`);
-        // TODO: save credentials
+
+        await this.accountService.createOrUpdateAccount({
+          email: data.userInfo?.email as string,
+          fullName: data.userInfo?.name,
+          picture: data.userInfo?.picture,
+          identifier: data.userInfo?.id,
+          provider: {
+            name: data.provider,
+            connectionType: ConnectionType.oAuth,
+            status: ProviderStatus.active,
+            smtp: {
+              host: ProviderDefaults[data.provider].host,
+              port: ProviderDefaults[data.provider].port,
+              data: data.payload,
+            },
+          },
+        });
 
         callback(true);
       }

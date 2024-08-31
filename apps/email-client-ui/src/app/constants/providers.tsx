@@ -1,6 +1,6 @@
-import { GOOGLE_REDIRECT_URI, GOOGLE_AUTHORIZATION_URL } from '@constants';
+import { GOOGLE_REDIRECT_URI, GOOGLE_AUTHORIZATION_URL, GOOGLE_AUTH_SCOPES } from '@constants';
 
-export const googleOauth2 = (socketId: string) => {
+export const googleOauth2 = (socketId: string, callbackUrl: string) => {
   const googleUrl = new URL(GOOGLE_AUTHORIZATION_URL);
 
   googleUrl.searchParams.append(
@@ -9,11 +9,14 @@ export const googleOauth2 = (socketId: string) => {
   );
 
   googleUrl.searchParams.append('redirect_uri', GOOGLE_REDIRECT_URI);
-  googleUrl.searchParams.append('scope', 'https://mail.google.com/');
+  googleUrl.searchParams.append('scope', GOOGLE_AUTH_SCOPES);
   googleUrl.searchParams.append('response_type', 'code');
   googleUrl.searchParams.append('access_type', 'offline');
   googleUrl.searchParams.append('prompt', 'consent');
-  googleUrl.searchParams.append('state', socketId);
+  googleUrl.searchParams.append(
+    'state',
+    JSON.stringify({ clientId: socketId, returnUrl: callbackUrl })
+  );
 
   return googleUrl.toString();
 };

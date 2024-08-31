@@ -1,15 +1,31 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query, Res } from '@nestjs/common';
 import { OauthCallbackService } from './oauth-callback.service';
+import { Response } from 'express';
 
 @Controller('oauth')
 export class OauthCallbackController {
   constructor(private service: OauthCallbackService) {}
 
   @Get('google')
-  googleCallbackHandler(
+  async googleCallbackHandler(
     @Query('code') code: string,
-    @Query('state') state: string // client socket id
+    @Query('state') state: string,
+    @Res() res: Response
   ) {
-    return this.service.handleGoogleCallback(code, state);
+
+    let clientId: string;
+    let returnUrl: string
+
+    try {
+      const stateObj = JSON.parse(state);
+      clientId = stateObj.clientId;
+      returnUrl = stateObj.returnUrl
+    } catch (error) {
+      throw new BadRequestException('Invalid state');
+    }
+
+    const response = await this.service.handleGoogleCallback(code, clientId);
+
+    res.redirect(`${returnUrl}?${response.message}`);
   }
 }

@@ -1,11 +1,31 @@
-import { PrimaryLoader } from '../../components/Loader';
+import { useCallbackStatus } from './hooks';
 
-const GoogleCallBack = () => {
+const GoogleSuccessCallBack = () => {
+  return <div>This is a SUCCESSFULL callback from google</div>;
+};
+
+const GoogleFailedCallBack = ({ reason }: { reason: string }) => {
   return (
     <div>
-      <PrimaryLoader size={100} />
+      This is a FAILED callback from google: <strong>{reason}</strong>
     </div>
   );
 };
+
+const GoogleCallBack = () => {
+  const { isSuccess, message } = useCallbackStatus();
+
+  return (
+    <div>
+      {isSuccess ? (
+        <GoogleSuccessCallBack />
+      ) : (
+        <GoogleFailedCallBack reason={message} />
+      )}
+    </div>
+  );
+};
+
+export { GoogleSuccessCallBack, GoogleFailedCallBack };
 
 export default GoogleCallBack;

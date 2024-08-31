@@ -8,7 +8,7 @@ import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ProviderService {
-  constructor(@InjectRepository(Provider) private repo: Repository<Provider>) {}
+  constructor(@InjectRepository(Provider) public repo: Repository<Provider>) {}
 
   getMany(payload?: {
     where?: FindOneOptions<Provider>['where'];

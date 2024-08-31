@@ -31,11 +31,15 @@ class Oauth2Dto {
 
   @IsNumber()
   @IsOptional()
-  expires?: string;
+  expires?: number;
 
   @IsString()
   @IsOptional()
   accessUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  scope?: string;
 }
 
 export const SmptValidationGroup: Record<
@@ -59,7 +63,7 @@ export const SmptValidationGroup: Record<
 export class SmtpConfigDto extends SharedConfigDto {
   @IsObject()
   @IsOptional()
-  data?: Record<string, string>;
+  data?: AppPasswordDto | Oauth2Dto;
 }
 
 export interface GoogleOauthTokenResponse {
@@ -68,4 +72,21 @@ export interface GoogleOauthTokenResponse {
   refresh_token: string;
   scope: string;
   token_type: string;
+}
+
+export interface GoogleUserInfoResponse {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  locale: string;
+}
+
+export interface ProviderCallbackReponseData {
+  payload: Oauth2Dto;
+  userInfo?: GoogleUserInfoResponse;
+  provider: ProviderEnum;
 }

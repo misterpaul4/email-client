@@ -1,11 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URI } from '@constants';
+import {
+  GOOGLE_REDIRECT_URI,
+  GOOGLE_TOKEN_URI,
+  GOOGLE_USER_INFO_URI,
+} from '@constants';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map, catchError } from 'rxjs/operators';
 import { GatewayService } from '../gateway';
-import { WebSocketEvents } from '@enums';
-import { GoogleOauthTokenResponse } from '@interfaces';
+import { ProviderCallbackParams, ProviderEnum, WebSocketEvents } from '@enums';
+import {
+  GoogleOauthTokenResponse,
+  GoogleUserInfoResponse,
+  ProviderCallbackReponseData,
+} from '@interfaces';
+import axios from 'axios';
 
 @Injectable()
 export class OauthCallbackService {
@@ -23,13 +32,19 @@ export class OauthCallbackService {
     this.googleClientSecret = this.configService.get('GOOGLE_CLIENT_SECRET');
   }
 
-  async handleGoogleCallback(code: string, clientId: string) {
+  async handleGoogleCallback(
+    code: string,
+    clientId: string
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
     // exchange code for tokens
     if (!this.googleClientId || !this.googleClientSecret) {
       // TODO: redirect to failed url with param as reason for failure
       return {
-        message: 'Action cannot be completed',
-        error: 'Missing parameters',
+        isSuccess: false,
+        message: 'Missing parameters',
       };
     }
 
@@ -56,26 +71,68 @@ export class OauthCallbackService {
     if (!tokenReqResponse.access_token) {
       // TODO: redirect to failed url
       return {
-        message: 'Action cannot be completed',
-        error: 'Missing parameters',
+        message: 'Code exchange request unsuccessful:',
+        isSuccess: false,
       };
     }
 
+    // get user details
+    let userInfo: GoogleUserInfoResponse;
+
+    try {
+      const { data } = await axios.get<GoogleUserInfoResponse>(
+        GOOGLE_USER_INFO_URI,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenReqResponse.access_token}`,
+          },
+        }
+      );
+
+      userInfo = data;
+    } catch (error) {
+      const message = 'Unable to fetch user info';
+
+      this.logger.error({
+        message,
+        error,
+      });
+
+      return {
+        isSuccess: false,
+        message,
+      };
+    }
+
+    const callbackPayload: ProviderCallbackReponseData = {
+      payload: {
+        accessToken: tokenReqResponse.access_token,
+        refreshToken: tokenReqResponse.refresh_token,
+        expires: tokenReqResponse.expires_in,
+        scope: tokenReqResponse.scope,
+        clientId: this.googleClientId,
+        clientSecret: this.googleClientSecret,
+      },
+      provider: ProviderEnum.google,
+      userInfo,
+    };
+
     const isDelivered = await this.gatewayService.emitAndWait({
       clientId,
-      payload: tokenReqResponse,
+      payload: callbackPayload,
       event: WebSocketEvents.OauthCred,
     });
 
     if (!isDelivered) {
-      // TODO: redirect to failed url
       return {
-        message: 'Action cannot be completed',
-        error: 'Unknown error occurred',
+        message: 'Error communicating with client server',
+        isSuccess: false,
       };
     }
 
-    // TODO: redirect to success url
-    return true;
+    return {
+      isSuccess: true,
+      message: ProviderCallbackParams.SUCCESS,
+    };
   }
 }

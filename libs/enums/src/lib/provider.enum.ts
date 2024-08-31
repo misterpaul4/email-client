@@ -31,3 +31,8 @@ export const ProviderDefaults: Record<
     port: 465,
   },
 } as const;
+
+export enum ProviderCallbackParams {
+  SUCCESS = "success",
+  FAILED = "failed",
+}
