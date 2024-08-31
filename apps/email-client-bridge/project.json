@@ -1,0 +1,26 @@
+{
+  "name": "email-client-bridge",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/email-client-bridge/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "email-client-bridge:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "email-client-bridge:build:development"
+        },
+        "production": {
+          "buildTarget": "email-client-bridge:build:production"
+        }
+      }
+    }
+  }
+}

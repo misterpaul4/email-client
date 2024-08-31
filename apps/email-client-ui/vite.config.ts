@@ -8,7 +8,7 @@ export default defineConfig({
   cacheDir: '../../node_modules/.vite/apps/email-client-ui',
 
   server: {
-    port: 4200,
+    port: Number(process.env.VITE_CLIENT_PORT) || 4200,
     host: 'localhost',
   },
 

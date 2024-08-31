@@ -1,0 +1,17 @@
+{
+  "name": "email-client-bridge-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "implicitDependencies": ["email-client-bridge"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "apps/email-client-bridge-e2e/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "dependsOn": ["email-client-bridge:build"]
+    }
+  }
+}

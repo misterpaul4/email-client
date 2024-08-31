@@ -14,7 +14,7 @@ export enum ProviderStatus {
   inactive = 'inactive',
 }
 
-export const DefaultProviderHostPort: Record<
+export const ProviderDefaults: Record<
   ProviderEnum,
   { host: string; port?: number }
 > = {
@@ -31,3 +31,8 @@ export const DefaultProviderHostPort: Record<
     port: 465,
   },
 } as const;
+
+export enum ProviderCallbackParams {
+  SUCCESS = "success",
+  FAILED = "failed",
+}

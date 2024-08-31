@@ -1,1 +1,5 @@
-export const test = {}
+export const GOOGLE_AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/auth"
+export const GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
+export const GOOGLE_USER_INFO_URI = "https://www.googleapis.com/oauth2/v2/userinfo"
+export const GOOGLE_REDIRECT_URI = "http://localhost:3000/api/v1/oauth/google"
+export const GOOGLE_AUTH_SCOPES = "https://mail.google.com/ https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"

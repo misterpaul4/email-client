@@ -35,7 +35,10 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/email-client-e2e/**/*"]
+      "exclude": [
+        "apps/email-client-e2e/**/*",
+        "apps/email-client-bridge-e2e/**/*"
+      ]
     },
     {
       "plugin": "@nx/vite/plugin",

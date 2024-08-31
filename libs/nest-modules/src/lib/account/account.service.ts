@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
 import { MailerService } from '../mailer';
-import { DefaultProviderHostPort } from '@enums';
+import { ProviderDefaults } from '@enums';
 
 @Injectable()
 export class AccountService {
@@ -22,6 +22,37 @@ export class AccountService {
     dto.provider = await this.providerValidations(dto.provider, dto.email);
 
     return this.repo.save(dto);
+  }
+
+  async createOrUpdateAccount(dto: Account) {
+    // check if email exist
+    const account = await this.repo.findOne({
+      where: { email: dto.email },
+      relations: ['provider'],
+    });
+
+    if (account?.id) {
+      await this.repo.update(account.id, {
+        picture: dto.picture || account.picture,
+        fullName: dto.fullName || account.fullName,
+      });
+
+      if (account.providerId) {
+        await this.providerService.repo.update(account.providerId, {
+          smtp: {
+            ...account.provider?.smtp,
+            data: {
+              ...account.provider?.smtp?.data,
+              ...dto.provider?.smtp?.data,
+            },
+          },
+        });
+      }
+
+      return account;
+    }
+
+    return this.createAccount(dto);
   }
 
   getMany() {
@@ -45,7 +76,7 @@ export class AccountService {
 
     if (smtp) {
       const { host: defaultHost, port: defaultPort } =
-        DefaultProviderHostPort[providerName];
+        ProviderDefaults[providerName];
 
       if (!smtp.host) {
         result.smtp.host = defaultHost;
