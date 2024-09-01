@@ -10,7 +10,7 @@ import {
   createTransport as ct,
 } from 'nodemailer';
 import { Account, Provider } from '@entities';
-import { SendMailDto } from '@interfaces';
+import { AppPasswordDto, SendMailDto } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType, ProviderStatus } from '@enums';
@@ -169,7 +169,7 @@ export class MailerService implements OnModuleInit {
       auth: {
         ...smtp.data,
         user: email || this.defaultAccount?.email || '',
-        pass: smtp.data?.['pass'] || '',
+        pass: (smtp.data as AppPasswordDto)?.['pass'],
         type:
           provider.connectionType === ConnectionType.oAuth ? 'oauth2' : 'login',
       },

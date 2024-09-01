@@ -9,9 +9,13 @@ export class SharedConfigDto {
   @IsOptional()
   @IsNumber()
   port?: number;
+
+  @IsString()
+  @IsOptional()
+  service?: string;
 }
 
-class AppPasswordDto {
+export class AppPasswordDto {
   @IsString()
   pass: string;
 }
@@ -52,11 +56,11 @@ export const SmptValidationGroup: Record<
   },
   [ProviderEnum.outlook]: {
     [ConnectionType.appPassword]: AppPasswordDto,
-    [ConnectionType.oAuth]: {},
+    [ConnectionType.oAuth]: Oauth2Dto,
   },
   [ProviderEnum.zoho]: {
     [ConnectionType.appPassword]: AppPasswordDto,
-    [ConnectionType.oAuth]: {},
+    [ConnectionType.oAuth]: Oauth2Dto,
   },
 };
 
@@ -87,6 +91,32 @@ export interface GoogleUserInfoResponse {
 
 export interface ProviderCallbackReponseData {
   payload: Oauth2Dto;
-  userInfo?: GoogleUserInfoResponse;
+  userInfo: {
+    id: string;
+    email: string;
+    fullName?: string;
+    picture?: string;
+  }
   provider: ProviderEnum;
+  config?: SharedConfigDto
+}
+
+export interface MicrosoftOauthTokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+  id_token: string;
+}
+
+export interface MicrosoftUserInfoResponse {
+  id: string;
+  displayName: string;
+  surname: string;
+  givenName: string;
+  preferredLanguage?: string;
+  mail: string;
+  mobilePhone?: string;
+  jobTitle?: string;
 }

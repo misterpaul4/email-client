@@ -14,6 +14,11 @@ export enum ProviderStatus {
   inactive = 'inactive',
 }
 
+export enum MicrosoftSmtpServers {
+  outlook = 'smtp-mail.outlook.com',
+  office365 = 'smtp.office365.com',
+}
+
 export const ProviderDefaults: Record<
   ProviderEnum,
   { host: string; port?: number }
@@ -23,7 +28,7 @@ export const ProviderDefaults: Record<
     port: 465,
   },
   [ProviderEnum.outlook]: {
-    host: 'smtp-mail.outlook.com',
+    host: MicrosoftSmtpServers.outlook,
     port: 587,
   },
   [ProviderEnum.zoho]: {

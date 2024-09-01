@@ -59,24 +59,29 @@ export class GatewayClientService implements OnModuleInit {
         data: ProviderCallbackReponseData,
         callback: (response: boolean) => void
       ) => {
-        this.logger.log(`Received message: ${data}`);
+        try {
+          this.logger.log(`Received message: ${data}`);
 
-        await this.accountService.createOrUpdateAccount({
-          email: data.userInfo?.email as string,
-          fullName: data.userInfo?.name,
-          picture: data.userInfo?.picture,
-          identifier: data.userInfo?.id,
-          provider: {
-            name: data.provider,
-            connectionType: ConnectionType.oAuth,
-            status: ProviderStatus.active,
-            smtp: {
-              host: ProviderDefaults[data.provider].host,
-              port: ProviderDefaults[data.provider].port,
-              data: data.payload,
+          await this.accountService.createOrUpdateAccount({
+            email: data.userInfo.email as string,
+            fullName: data.userInfo.fullName,
+            picture: data.userInfo.picture,
+            identifier: data.userInfo.id,
+            provider: {
+              name: data.provider,
+              connectionType: ConnectionType.oAuth,
+              status: ProviderStatus.active,
+              smtp: {
+                host: ProviderDefaults[data.provider].host,
+                port: ProviderDefaults[data.provider].port,
+                ...data.config,
+                data: data.payload,
+              },
             },
-          },
-        });
+          });
+        } catch (error: any) {
+          callback(error.message);
+        }
 
         callback(true);
       }
@@ -109,8 +114,8 @@ export class GatewayClientService implements OnModuleInit {
     });
   }
 
-  disconnectFromServer() {
-    if (this.socket) {
+  private disconnectFromServer() {
+    if (this.socket.connected) {
       this.socket.disconnect();
     }
   }

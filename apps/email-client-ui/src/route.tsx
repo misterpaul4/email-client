@@ -9,6 +9,7 @@ import HomePage from './app/layout/home/HomPage';
 import NewAccount from './app/layout/auth/NewAccount';
 import GoogleCallBack from './app/layout/callback/Google';
 import CallBackLayout from './app/layout/callback';
+import MicrosoftCallBack from './app/layout/callback/Microsoft';
 
 const routes: RouteObject[] = [
   {
@@ -22,7 +23,10 @@ const routes: RouteObject[] = [
       {
         path: 'auth/oauth',
         element: <CallBackLayout />,
-        children: [{ path: 'google', element: <GoogleCallBack /> }],
+        children: [
+          { path: 'google', element: <GoogleCallBack /> },
+          { path: 'microsoft', element: <MicrosoftCallBack /> },
+        ],
       },
     ],
   },

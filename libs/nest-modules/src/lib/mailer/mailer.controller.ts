@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { MailerService } from './mailer.service';
 import { SendMailDto } from '@interfaces';
+import { Provider } from '@entities';
 
 @Controller('mailer')
 export class MailerController {
@@ -14,5 +15,10 @@ export class MailerController {
   @Get('default-account')
   getDefaultAccount() {
     return this.service.getDefaultAccount();
+  }
+
+  @Post('validate-smtp/:email')
+  validateSmtp(@Body() dto: Provider, @Param('email') email: string) {
+    return this.service.validateTransport(dto, email);
   }
 }
