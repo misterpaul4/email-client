@@ -12,7 +12,12 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map, catchError } from 'rxjs/operators';
 import { GatewayService } from '../gateway';
-import { MicrosoftSmtpServers, ProviderCallbackParams, ProviderEnum, WebSocketEvents } from '@enums';
+import {
+  MicrosoftSmtpServers,
+  ProviderCallbackParams,
+  ProviderEnum,
+  WebSocketEvents,
+} from '@enums';
 import {
   GoogleOauthTokenResponse,
   GoogleUserInfoResponse,
@@ -144,7 +149,10 @@ export class OauthCallbackService {
 
     if (isDelivered !== true) {
       return {
-        message: 'Error communicating with client server',
+        message:
+          typeof isDelivered === 'string'
+            ? isDelivered
+            : 'Error communicating with client server',
         isSuccess: false,
       };
     }
@@ -245,8 +253,8 @@ export class OauthCallbackService {
       },
       config: {
         host: MicrosoftSmtpServers.office365,
-        service: 'Outlook365'
-      }
+        service: 'Outlook365',
+      },
     };
 
     let isDelivered: unknown;
