@@ -24,6 +24,29 @@ export class AccountService {
     return this.repo.save(dto);
   }
 
+  async updateAccount(dto: Account, account: Account) {
+    await this.repo.update(account.id!, {
+      picture: dto.picture || account.picture,
+      fullName: dto.fullName || account.fullName,
+    });
+
+    if (account.providerId) {
+      dto.provider = await this.providerValidations(dto.provider, dto.email);
+
+      await this.providerService.repo.update(account.providerId, {
+        smtp: {
+          ...account.provider?.smtp,
+          data: {
+            ...account.provider?.smtp?.data,
+            ...dto.provider?.smtp?.data,
+          },
+        },
+      });
+    }
+
+    return account;
+  }
+
   async createOrUpdateAccount(dto: Account) {
     // check if email exist
     const account = await this.repo.findOne({
@@ -32,24 +55,7 @@ export class AccountService {
     });
 
     if (account?.id) {
-      await this.repo.update(account.id, {
-        picture: dto.picture || account.picture,
-        fullName: dto.fullName || account.fullName,
-      });
-
-      if (account.providerId) {
-        await this.providerService.repo.update(account.providerId, {
-          smtp: {
-            ...account.provider?.smtp,
-            data: {
-              ...account.provider?.smtp?.data,
-              ...dto.provider?.smtp?.data,
-            },
-          },
-        });
-      }
-
-      return account;
+      return this.updateAccount(dto, account);
     }
 
     return this.createAccount(dto);

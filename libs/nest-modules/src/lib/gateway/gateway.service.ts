@@ -51,11 +51,15 @@ export class GatewayService
       client
         .timeout(GATEWAY_TIMEOUT)
         .emit(event, payload, (err: Error, response: T) => {
-          if (err) {
-            reject(err);
-          } else {
+          if (response === true) {
             resolve(response);
           }
+
+          if (err) {
+            reject(err);
+          }
+
+          resolve(response);
         });
     });
   }
