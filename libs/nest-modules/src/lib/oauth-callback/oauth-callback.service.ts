@@ -142,7 +142,7 @@ export class OauthCallbackService {
       event: WebSocketEvents.OauthCred,
     });
 
-    if (!isDelivered) {
+    if (isDelivered !== true) {
       return {
         message: 'Error communicating with client server',
         isSuccess: false,
