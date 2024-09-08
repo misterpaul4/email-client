@@ -62,23 +62,26 @@ export class GatewayClientService implements OnModuleInit {
         try {
           this.logger.log(`Received message: ${data}`);
 
-          await this.accountService.createOrUpdateAccount({
-            email: data.userInfo.email as string,
-            fullName: data.userInfo.fullName,
-            picture: data.userInfo.picture,
-            identifier: data.userInfo.id,
-            provider: {
-              name: data.provider,
-              connectionType: ConnectionType.oAuth,
-              status: ProviderStatus.active,
-              smtp: {
-                host: ProviderDefaults[data.provider].host,
-                port: ProviderDefaults[data.provider].port,
-                ...data.config,
-                data: data.payload,
+          await this.accountService.createOrUpdateAccount(
+            {
+              email: data.userInfo.email as string,
+              fullName: data.userInfo.fullName,
+              picture: data.userInfo.picture,
+              identifier: data.userInfo.id,
+              provider: {
+                name: data.provider,
+                connectionType: ConnectionType.oAuth,
+                status: ProviderStatus.active,
+                smtp: {
+                  host: ProviderDefaults[data.provider].host,
+                  port: ProviderDefaults[data.provider].port,
+                  ...data.config,
+                  data: data.payload,
+                },
               },
             },
-          });
+            data.shouldSkipTransportValidation
+          );
         } catch (error: any) {
           callback(error.message);
         }

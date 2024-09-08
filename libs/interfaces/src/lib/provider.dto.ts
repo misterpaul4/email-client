@@ -20,7 +20,7 @@ export class AppPasswordDto {
   pass: string;
 }
 
-class Oauth2Dto {
+export class Oauth2Dto {
   @IsString()
   clientId: string;
 
@@ -35,7 +35,11 @@ class Oauth2Dto {
 
   @IsNumber()
   @IsOptional()
-  expires?: number;
+  expires?: number; // in x seconds from now
+
+  @IsNumber()
+  @IsOptional()
+  expiresIn?: number; // in x seconds
 
   @IsString()
   @IsOptional()
@@ -96,9 +100,10 @@ export interface ProviderCallbackReponseData {
     email: string;
     fullName?: string;
     picture?: string;
-  }
+  };
   provider: ProviderEnum;
-  config?: SharedConfigDto
+  config?: SharedConfigDto;
+  shouldSkipTransportValidation?: boolean;
 }
 
 export interface MicrosoftOauthTokenResponse {

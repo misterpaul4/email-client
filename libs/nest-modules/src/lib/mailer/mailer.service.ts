@@ -10,13 +10,15 @@ import {
   createTransport as ct,
 } from 'nodemailer';
 import { Account, Provider } from '@entities';
-import { AppPasswordDto, SendMailDto } from '@interfaces';
+import { AppPasswordDto, Oauth2Dto, SendMailDto } from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConnectionType, ProviderStatus } from '@enums';
+import { ConnectionType, ProviderEnum, ProviderStatus } from '@enums';
 import SMTPConnection = require('nodemailer/lib/smtp-connection');
 import { ConfigService } from '@nestjs/config';
 import { STATUS_CODES } from 'http';
+import { ProviderService } from '../provider';
+import { getTokenExpirationTime } from '@constants';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -25,10 +27,11 @@ export class MailerService implements OnModuleInit {
   private transporter?: Transporter<SendMailOptions>;
   private defaultAccount?: Account;
   private shouldSetDefaultAccountOnMount = false;
+  private apiOnlyOauthProviders: ProviderEnum[] = [ProviderEnum.outlook];
 
   constructor(
     @InjectRepository(Account) private accountRepo: Repository<Account>,
-    @InjectRepository(Provider) private providerRepo: Repository<Provider>,
+    private providerService: ProviderService,
     private configService: ConfigService
   ) {
     this.shouldSetDefaultAccountOnMount =
@@ -45,7 +48,7 @@ export class MailerService implements OnModuleInit {
     let provider = account.provider;
 
     if (!provider) {
-      const resp = await this.providerRepo.findOne({
+      const resp = await this.providerService.repo.findOne({
         where: { id: account.providerId },
       });
 
@@ -114,14 +117,29 @@ export class MailerService implements OnModuleInit {
     const transport = provider.smtp;
     const transporter = this.createTransport(provider, email);
 
-    try {
-      await transporter.verify();
-
+    const isSuccess = () => {
       this.logger.log({
         message: 'Server is ready to take messages',
         transport,
         email,
       });
+    };
+
+    try {
+      if (
+        provider.connectionType === ConnectionType.oAuth &&
+        this.apiOnlyOauthProviders.includes(provider.name)
+      ) {
+        const resp = await this.validateApiTransport(provider, true);
+        if (resp.isValid) {
+          isSuccess();
+        }
+        return resp;
+      }
+
+      await transporter.verify();
+
+      isSuccess();
     } catch (error: any) {
       const existingProvider = provider.id;
 
@@ -138,7 +156,7 @@ export class MailerService implements OnModuleInit {
 
       // set provider inactive
       if (existingProvider && provider.status === ProviderStatus.active) {
-        this.providerRepo
+        this.providerService.repo
           .update({ id: existingProvider }, { status: ProviderStatus.inactive })
           .catch((error) => {
             this.logger.error({
@@ -158,6 +176,69 @@ export class MailerService implements OnModuleInit {
 
     return {
       isValid: true,
+    };
+  }
+
+  async validateApiTransport(
+    provider: Provider,
+    shouldUpdate = false
+  ): Promise<{ isValid: boolean; message?: string }> {
+    const data = provider.smtp.data as Oauth2Dto;
+    let newAccessToken = false;
+
+    if (!data.accessToken) {
+      return { isValid: false, message: 'Missing access token' };
+    }
+
+    if (
+      data.expiresIn &&
+      this.providerService.isAccessTokenExpired(data.expiresIn)
+    ) {
+      const refreshTokenResponse =
+        await this.providerService.refreshProviderToken(
+          provider.name,
+          data.refreshToken
+        );
+
+      if (refreshTokenResponse) {
+        data.accessToken = refreshTokenResponse.access_token;
+        data.expires = refreshTokenResponse.expires_in;
+        data.expiresIn = getTokenExpirationTime(
+          refreshTokenResponse.expires_in
+        );
+        data.refreshToken = refreshTokenResponse.refresh_token;
+        newAccessToken = true;
+      }
+    }
+
+    // validate via provider api
+    const isValid = await this.providerService.validateProviderToken(
+      provider.name,
+      data.accessToken
+    );
+
+    if (provider.id && isValid && shouldUpdate && newAccessToken) {
+      await this.providerService.repo
+        .update(provider.id, {
+          smtp: {
+            ...provider.smtp,
+            data: {
+              ...provider.smtp.data,
+              ...data,
+            },
+          },
+        })
+        .catch((error) => {
+          this.logger.error({
+            message: 'Failed to update provider token data',
+            error,
+            provider,
+          });
+        });
+    }
+
+    return {
+      isValid,
     };
   }
 

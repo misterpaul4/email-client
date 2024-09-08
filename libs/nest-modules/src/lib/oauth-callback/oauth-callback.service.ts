@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  getTokenExpirationTime,
   GOOGLE_REDIRECT_URI,
   GOOGLE_TOKEN_URI,
   GOOGLE_USER_INFO_URI,
@@ -13,7 +14,6 @@ import { HttpService } from '@nestjs/axios';
 import { map, catchError } from 'rxjs/operators';
 import { GatewayService } from '../gateway';
 import {
-  MicrosoftSmtpServers,
   ProviderCallbackParams,
   ProviderEnum,
   WebSocketEvents,
@@ -244,6 +244,7 @@ export class OauthCallbackService {
         scope: tokenReqResponse.scope,
         clientId: this.microsoftClientId,
         clientSecret: this.microsoftClientSecret,
+        expiresIn: getTokenExpirationTime(tokenReqResponse.expires_in),
       },
       provider: ProviderEnum.outlook,
       userInfo: {
@@ -251,10 +252,7 @@ export class OauthCallbackService {
         id: userInfo.id,
         fullName: userInfo.displayName,
       },
-      config: {
-        host: MicrosoftSmtpServers.office365,
-        service: 'Outlook365',
-      },
+      shouldSkipTransportValidation: true,
     };
 
     let isDelivered: unknown;

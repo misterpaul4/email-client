@@ -14,12 +14,16 @@ export class AccountService {
     private mailerService: MailerService
   ) {}
 
-  async createAccount(dto: Account) {
+  async createAccount(dto: Account, shouldSkipTransportValidation = false) {
     if (!Object.keys(dto.provider || {}).length && !dto.providerId) {
       throw new BadRequestException('Missing provider configuration');
     }
 
-    dto.provider = await this.providerValidations(dto.provider, dto.email);
+    dto.provider = await this.providerValidations(
+      dto.provider,
+      dto.email,
+      shouldSkipTransportValidation
+    );
 
     return this.repo.save(dto);
   }
@@ -47,7 +51,10 @@ export class AccountService {
     return account;
   }
 
-  async createOrUpdateAccount(dto: Account) {
+  async createOrUpdateAccount(
+    dto: Account,
+    shouldSkipTransportValidation = false
+  ) {
     // check if email exist
     const account = await this.repo.findOne({
       where: { email: dto.email },
@@ -58,7 +65,7 @@ export class AccountService {
       return this.updateAccount(dto, account);
     }
 
-    return this.createAccount(dto);
+    return this.createAccount(dto, shouldSkipTransportValidation);
   }
 
   getMany() {
@@ -67,12 +74,9 @@ export class AccountService {
 
   private async providerValidations(
     provider: Provider,
-    email: string
+    email: string,
+    shouldSkipTransportValidation = false
   ): Promise<Provider> {
-    if (!provider) {
-      provider;
-    }
-
     // validate smtp payload
     this.providerService.validateSmtpPayload(provider);
 
@@ -93,14 +97,16 @@ export class AccountService {
       }
     }
 
-    // validate transport
-    const { isValid, message } = await this.mailerService.validateTransport(
-      provider,
-      email
-    );
+    if (!shouldSkipTransportValidation) {
+      // validate transport
+      const { isValid, message } = await this.mailerService.validateTransport(
+        provider,
+        email
+      );
 
-    if (!isValid) {
-      throw new BadRequestException(message);
+      if (!isValid) {
+        throw new BadRequestException(message);
+      }
     }
 
     return result;

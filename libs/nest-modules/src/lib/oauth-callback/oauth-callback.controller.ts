@@ -31,6 +31,7 @@ export class OauthCallbackController {
 
     const response = await this.service.handleGoogleCallback(code, clientId);
 
+
     res.redirect(`${returnUrl}?${response.message}`);
   }
 
