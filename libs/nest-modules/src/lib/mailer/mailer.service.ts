@@ -10,7 +10,12 @@ import {
   createTransport as ct,
 } from 'nodemailer';
 import { Account, Provider } from '@entities';
-import { AppPasswordDto, Oauth2Dto, SendMailDto } from '@interfaces';
+import {
+  AppPasswordDto,
+  Oauth2Dto,
+  SendMailDto,
+  SmtpConfigDto,
+} from '@interfaces';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionType, ProviderEnum, ProviderStatus } from '@enums';
@@ -18,7 +23,8 @@ import SMTPConnection = require('nodemailer/lib/smtp-connection');
 import { ConfigService } from '@nestjs/config';
 import { STATUS_CODES } from 'http';
 import { ProviderService } from '../provider';
-import { getTokenExpirationTime } from '@constants';
+import { getTokenExpirationTime, MICROSOFT_SEND_MAIL_URI } from '@constants';
+import axios from 'axios';
 
 @Injectable()
 export class MailerService implements OnModuleInit {
@@ -74,37 +80,115 @@ export class MailerService implements OnModuleInit {
     }
   }
 
-  async sendEmail(dto: SendMailDto) {
-    let transporter = this.transporter;
-    let account = this.defaultAccount;
-    const { accountId } = dto;
+  private async sendMicrosoftOauthMail(
+    payload: {
+      message: {
+        subject?: string;
+        body: {
+          contentType: 'HTML' | 'Text';
+          content: string;
+        };
+        toRecipients: {
+          emailAddress: {
+            address: string;
+          };
+        }[];
+      };
+    },
+    account: Account
+  ): Promise<string  | void> {
+    this.logger.log(`Sending microsoft mail`)
 
-    if (accountId !== this.defaultAccount?.id) {
-      const resp = await this.accountRepo.findOne({
-        where: { id: accountId },
-        relations: ['provider'],
-      });
+    try {
+      const validationResp = await this.validateTransport(
+        account.provider,
+        account.email
+      );
 
-      if (!resp?.provider) {
-        throw new BadRequestException('Missing provider configuration');
+      if (validationResp.isValid) {
+        const data = validationResp.data as Oauth2Dto;
+        const resp = await axios.post(MICROSOFT_SEND_MAIL_URI, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${data.accessToken}`,
+          },
+        });
+
+        return resp.data || account.id;
       }
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
 
-      account = resp;
-      transporter = this.createTransport(resp.provider, account.email);
+  async sendApiMail(dto: SendMailDto, account: Account) {
+    // validate access token expirations
+    switch (account.provider.name) {
+      case ProviderEnum.outlook:
+        return this.sendMicrosoftOauthMail(
+          {
+            message: {
+              subject: dto.subject,
+              body: {
+                contentType: 'HTML',
+                content: dto.text,
+              },
+              toRecipients: [
+                {
+                  emailAddress: {
+                    address: dto.to,
+                  },
+                },
+              ],
+            },
+          },
+          account
+        );
+      //
+      default:
+        break;
     }
 
-    if (!transporter) {
-      throw new BadRequestException('Action cannot be completed!');
-    }
+    return undefined;
+  }
+
+  async sendTransportMail(dto: SendMailDto, account: Account) {
+    const transporter = this.createTransport(account.provider, account.email);
 
     const payload: SendMailOptions = {
-      from: account?.email,
+      from: account.email,
       ...dto,
     };
 
     const info = await transporter.sendMail(payload);
 
-    this.logger.log('Message sent: %s', info.messageId);
+    return info.messageId;
+  }
+
+  async sendEmail(dto: SendMailDto) {
+    // get account
+    const account = await this.accountRepo.findOne({
+      where: { id: dto.accountId },
+      relations: ['provider'],
+    });
+
+    if (!account?.provider) {
+      throw new BadRequestException('Missing provider configuration');
+    }
+
+    const messageId: string | void = await (this.isUsingProviderApiForMail(
+      account.provider
+    )
+      ? this.sendApiMail(dto, account)
+      : this.sendTransportMail(dto, account));
+
+    if (!messageId) {
+      throw new BadRequestException('Action cannot be completed!');
+    }
+
+    this.logger.log('Message sent: %s', messageId);
+
+    return messageId;
   }
 
   async validateTransport(
@@ -113,6 +197,7 @@ export class MailerService implements OnModuleInit {
   ): Promise<{
     message?: string;
     isValid: boolean;
+    data: SmtpConfigDto['data'];
   }> {
     const transport = provider.smtp;
     const transporter = this.createTransport(provider, email);
@@ -126,10 +211,7 @@ export class MailerService implements OnModuleInit {
     };
 
     try {
-      if (
-        provider.connectionType === ConnectionType.oAuth &&
-        this.apiOnlyOauthProviders.includes(provider.name)
-      ) {
+      if (this.isUsingProviderApiForMail(provider)) {
         const resp = await this.validateApiTransport(provider, true);
         if (resp.isValid) {
           isSuccess();
@@ -171,29 +253,30 @@ export class MailerService implements OnModuleInit {
       return {
         message,
         isValid: false,
+        data: transport.data,
       };
     }
 
     return {
       isValid: true,
+      data: transport.data,
     };
   }
 
   async validateApiTransport(
     provider: Provider,
-    shouldUpdate = false
-  ): Promise<{ isValid: boolean; message?: string }> {
+    shouldUpdate = false,
+    shouldSkipValidation = false
+  ): Promise<{ isValid: boolean; message?: string; data: Oauth2Dto }> {
     const data = provider.smtp.data as Oauth2Dto;
     let newAccessToken = false;
+    let isValid = false;
 
     if (!data.accessToken) {
-      return { isValid: false, message: 'Missing access token' };
+      return { isValid: false, message: 'Missing access token', data };
     }
 
-    if (
-      data.expiresIn &&
-      this.providerService.isAccessTokenExpired(data.expiresIn)
-    ) {
+    if (this.providerService.isAccessTokenExpired(data.expiresIn)) {
       const refreshTokenResponse =
         await this.providerService.refreshProviderToken(
           provider.name,
@@ -201,6 +284,7 @@ export class MailerService implements OnModuleInit {
         );
 
       if (refreshTokenResponse) {
+        this.logger.log(`Refreshed access token for provider [${provider.name}]: ${provider.id}`);
         data.accessToken = refreshTokenResponse.access_token;
         data.expires = refreshTokenResponse.expires_in;
         data.expiresIn = getTokenExpirationTime(
@@ -208,17 +292,27 @@ export class MailerService implements OnModuleInit {
         );
         data.refreshToken = refreshTokenResponse.refresh_token;
         newAccessToken = true;
+        isValid = true;
       }
+    } else {
+      isValid = true;
     }
 
-    // validate via provider api
-    const isValid = await this.providerService.validateProviderToken(
-      provider.name,
-      data.accessToken
-    );
+    if (!shouldSkipValidation) {
+      // validate via provider api
+      isValid = await this.providerService.validateProviderToken(
+        provider.name,
+        data.accessToken
+      );
+    }
 
-    if (provider.id && isValid && shouldUpdate && newAccessToken) {
-      await this.providerService.repo
+    if (
+      provider.id &&
+      (isValid || shouldSkipValidation) &&
+      shouldUpdate &&
+      newAccessToken
+    ) {
+      this.providerService.repo
         .update(provider.id, {
           smtp: {
             ...provider.smtp,
@@ -239,6 +333,7 @@ export class MailerService implements OnModuleInit {
 
     return {
       isValid,
+      data,
     };
   }
 
@@ -257,6 +352,13 @@ export class MailerService implements OnModuleInit {
     };
 
     return ct(payload);
+  }
+
+  private isUsingProviderApiForMail(provider: Provider) {
+    return (
+      provider.connectionType === ConnectionType.oAuth &&
+      this.apiOnlyOauthProviders.includes(provider.name)
+    );
   }
 
   private async initialize() {

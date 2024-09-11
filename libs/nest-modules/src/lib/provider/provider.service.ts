@@ -60,8 +60,8 @@ export class ProviderService {
     }
   }
 
-  isAccessTokenExpired(expiresIn: number): boolean {
-    return Date.now() > expiresIn;
+  isAccessTokenExpired(expiresIn?: number): boolean {
+    return expiresIn ? Date.now() > expiresIn : false;
   }
 
   refreshProviderToken(
@@ -77,7 +77,10 @@ export class ProviderService {
     }
   }
 
-  validateProviderToken(provider: ProviderEnum, accessToken: string): Promise<boolean> {
+  validateProviderToken(
+    provider: ProviderEnum,
+    accessToken: string
+  ): Promise<boolean> {
     switch (provider) {
       case ProviderEnum.outlook:
         return this.validateMicrosoftCredentials(accessToken);
@@ -87,19 +90,18 @@ export class ProviderService {
     }
   }
 
-  private async validateMicrosoftCredentials(accessToken: string): Promise<boolean> {
+  private async validateMicrosoftCredentials(
+    accessToken: string
+  ): Promise<boolean> {
     try {
-      const { data } = await axios.get(
-        MICROSOFT_USER_INFO_URI,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/json',
-          },
-        }
-      );
+      const { data } = await axios.get(MICROSOFT_USER_INFO_URI, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+        },
+      });
 
-      return !!data
+      return !!data;
     } catch (error) {
       const message = 'Unable to fetch user info';
 
@@ -108,7 +110,7 @@ export class ProviderService {
         error,
       });
 
-      return false
+      return false;
     }
   }
 

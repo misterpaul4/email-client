@@ -9,3 +9,4 @@ export const MICROSOFT_AUTHORIZATION_URL = "https://login.microsoftonline.com/co
 export const MICROSOFT_TOKEN_URI = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 export const MICROSOFT_USER_INFO_URI = "https://graph.microsoft.com/v1.0/me"
 export const MICROSOFT_AUTH_SCOPES = "openid profile email offline_access User.Read SMTP.Send"
+export const MICROSOFT_SEND_MAIL_URI = "https://graph.microsoft.com/v1.0/me/sendMail"
