@@ -186,7 +186,7 @@ export class MailerService implements OnModuleInit {
       throw new BadRequestException('Action cannot be completed!');
     }
 
-    this.logger.log('Message sent: %s', messageId);
+    this.logger.log(`Message sent: ${messageId}`);
 
     return messageId;
   }
