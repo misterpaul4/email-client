@@ -96,8 +96,8 @@ export class MailerService implements OnModuleInit {
       };
     },
     account: Account
-  ): Promise<string  | void> {
-    this.logger.log(`Sending microsoft mail`)
+  ): Promise<string | void> {
+    this.logger.log(`Sending microsoft mail`);
 
     try {
       const validationResp = await this.validateTransport(
@@ -203,11 +203,15 @@ export class MailerService implements OnModuleInit {
     const transporter = this.createTransport(provider, email);
 
     const isSuccess = () => {
-      this.logger.log({
-        message: 'Server is ready to take messages',
-        transport,
-        email,
-      });
+      if (provider.id) {
+        this.logger.log('Validate transport success');
+      } else {
+        this.logger.log({
+          message: 'Server is ready to take messages',
+          transport,
+          email,
+        });
+      }
     };
 
     try {
@@ -284,7 +288,9 @@ export class MailerService implements OnModuleInit {
         );
 
       if (refreshTokenResponse) {
-        this.logger.log(`Refreshed access token for provider [${provider.name}]: ${provider.id}`);
+        this.logger.log(
+          `Refreshed access token for provider [${provider.name}]: ${provider.id}`
+        );
         data.accessToken = refreshTokenResponse.access_token;
         data.expires = refreshTokenResponse.expires_in;
         data.expiresIn = getTokenExpirationTime(
