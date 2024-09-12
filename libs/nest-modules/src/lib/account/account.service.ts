@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account, Provider } from '@entities';
 import { ProviderService } from '../provider';
-import { MailerService } from '../mailer';
+import { MailerSmtpService } from '../mailer';
 import { ProviderDefaults } from '@enums';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class AccountService {
   constructor(
     @InjectRepository(Account) private repo: Repository<Account>,
     private providerService: ProviderService,
-    private mailerService: MailerService
+    private mailerService: MailerSmtpService
   ) {}
 
   async createAccount(dto: Account, shouldSkipTransportValidation = false) {

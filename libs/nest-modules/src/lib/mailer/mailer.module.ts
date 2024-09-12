@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
-import { MailerService } from './mailer.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from '@entities';
-import { MailerController } from './mailer.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ProviderModule } from '../provider';
+import { MailerController } from './controller';
+import { MailerSmtpService } from './service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account]), ConfigModule, ProviderModule],
-  providers: [MailerService],
+  providers: [MailerSmtpService],
   controllers: [MailerController],
-  exports: [MailerService],
+  exports: [MailerSmtpService],
 })
 export class MailerModule {}

@@ -7,14 +7,14 @@ import {
   RemoveEvent,
   SoftRemoveEvent,
 } from 'typeorm';
-import { MailerService } from '../mailer';
+import { MailerSmtpService } from '../mailer';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 @EventSubscriber()
 export class AccountSubscriber implements EntitySubscriberInterface<Account> {
   constructor(
     @InjectDataSource() readonly dataSource: DataSource,
-    private mailerService: MailerService
+    private mailerService: MailerSmtpService
   ) {
     dataSource.subscribers.push(this);
   }

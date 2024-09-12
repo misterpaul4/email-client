@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { MailerService } from './mailer.service';
 import { SendMailDto } from '@interfaces';
 import { Provider } from '@entities';
+import { MailerSmtpService } from '../service';
 
 @Controller('mailer')
 export class MailerController {
-  constructor(private service: MailerService) {}
+  constructor(private service: MailerSmtpService) {}
 
   @Post('send-mail')
   sendMail(@Body() dto: SendMailDto) {

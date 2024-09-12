@@ -22,13 +22,13 @@ import { ConnectionType, ProviderEnum, ProviderStatus } from '@enums';
 import SMTPConnection = require('nodemailer/lib/smtp-connection');
 import { ConfigService } from '@nestjs/config';
 import { STATUS_CODES } from 'http';
-import { ProviderService } from '../provider';
+import { ProviderService } from '../../provider';
 import { getTokenExpirationTime, MICROSOFT_SEND_MAIL_URI } from '@constants';
 import axios from 'axios';
 
 @Injectable()
-export class MailerService implements OnModuleInit {
-  private logger = new Logger(MailerService.name);
+export class MailerSmtpService implements OnModuleInit {
+  private logger = new Logger(MailerSmtpService.name);
 
   private transporter?: Transporter<SendMailOptions>;
   private defaultAccount?: Account;
