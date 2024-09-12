@@ -8481,6 +8481,14 @@ node-gyp-build@^4.2.2:
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.8.1.tgz#976d3ad905e71b76086f4f0b0d3637fe79b6cda5"
   integrity sha512-OSs33Z9yWr148JZcbZd5WiAXhh/n9z8TxQcdMhIOlpN9AhWpLfvVFO73+m77bBABQMaY9XSvIa+qk0jlI7Gcaw==
 
+node-imap@^0.9.6:
+  version "0.9.6"
+  resolved "https://registry.yarnpkg.com/node-imap/-/node-imap-0.9.6.tgz#b98d87f4a99dbf5184e567cd6b0f3094014f64eb"
+  integrity sha512-pYQ2AtjQwrSvILq8EYInv3E3svrJwrTOxzW7uBGpP//AkCs/pMdO+O6KEgUlSchh/0/N0MSWs5io3xZhxJ9yLg==
+  dependencies:
+    readable-stream "^3.6.0"
+    utf7 "^1.0.2"
+
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/node-int64/-/node-int64-0.4.0.tgz"
@@ -10110,6 +10118,11 @@ semver@^7.3.4, semver@^7.3.5, semver@^7.3.8, semver@^7.5.3, semver@^7.5.4, semve
   resolved "https://registry.npmjs.org/semver/-/semver-7.6.3.tgz"
   integrity sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==
 
+semver@~5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
+  integrity sha512-mfmm3/H9+67MCVix1h+IXTpDwL6710LyHuk7+cWC9T1mE0qz4iHhh6r4hU2wrIT9iTsAAC2XQRvfblL028cpLw==
+
 send@0.18.0:
   version "0.18.0"
   resolved "https://registry.npmjs.org/send/-/send-0.18.0.tgz"
@@ -11211,6 +11224,13 @@ url-parse@^1.5.3:
   dependencies:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
+
+utf7@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/utf7/-/utf7-1.0.2.tgz#955f490aae653ba220b9456a0a8776c199360991"
+  integrity sha512-qQrPtYLLLl12NF4DrM9CvfkxkYI97xOb5dsnGZHE3teFr0tWiEZ9UdgMPczv24vl708cYMpe6mGXGHrotIp3Bw==
+  dependencies:
+    semver "~5.3.0"
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
